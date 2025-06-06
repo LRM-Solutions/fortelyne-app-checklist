@@ -8,6 +8,8 @@ import {
   SafeAreaView,
   TextInput,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { logout } from "../api/authApi";
 import { useAuth } from "../components/AuthProvider";
@@ -87,80 +89,100 @@ const PerfilScreen = () => {
         <Text style={styles.subtitle}>Gerenciar conta</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Informações do Usuário */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Informações da Conta</Text>
-          <View style={styles.infoCard}>
-            <Text style={styles.infoLabel}>Status:</Text>
-            <Text style={styles.infoValue}>Usuário Ativo</Text>
-            <Text style={styles.infoLabel}>App:</Text>
-            <Text style={styles.infoValue}>Fortelyne - Ordens de Serviço</Text>
-          </View>
-        </View>
-
-        {/* Alterar Senha */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Alterar Senha</Text>
-          <View style={styles.formCard}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Senha Atual</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Digite sua senha atual"
-                value={senhaAtual}
-                onChangeText={setSenhaAtual}
-                secureTextEntry
-                editable={!isLoading}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Nova Senha</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Digite a nova senha (min. 6 caracteres)"
-                value={novaSenha}
-                onChangeText={setNovaSenha}
-                secureTextEntry
-                editable={!isLoading}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Confirmar Nova Senha</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Digite novamente a nova senha"
-                value={confirmarSenha}
-                onChangeText={setConfirmarSenha}
-                secureTextEntry
-                editable={!isLoading}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={[
-                styles.alterarSenhaButton,
-                isLoading && styles.buttonDisabled,
-              ]}
-              onPress={handleAlterarSenha}
-              disabled={isLoading}
-            >
-              <Text style={styles.alterarSenhaButtonText}>
-                {isLoading ? "Alterando..." : "Alterar Senha"}
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+      >
+        <ScrollView
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* Informações do Usuário */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Informações da Conta</Text>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoLabel}>Status:</Text>
+              <Text style={styles.infoValue}>Usuário Ativo</Text>
+              <Text style={styles.infoLabel}>App:</Text>
+              <Text style={styles.infoValue}>
+                Fortelyne - Ordens de Serviço
               </Text>
+            </View>
+          </View>
+
+          {/* Alterar Senha */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Alterar Senha</Text>
+            <View style={styles.formCard}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Senha Atual</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Digite sua senha atual"
+                  value={senhaAtual}
+                  onChangeText={setSenhaAtual}
+                  secureTextEntry
+                  editable={!isLoading}
+                  returnKeyType="next"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Nova Senha</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Digite a nova senha (min. 6 caracteres)"
+                  value={novaSenha}
+                  onChangeText={setNovaSenha}
+                  secureTextEntry
+                  editable={!isLoading}
+                  returnKeyType="next"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Confirmar Nova Senha</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Digite novamente a nova senha"
+                  value={confirmarSenha}
+                  onChangeText={setConfirmarSenha}
+                  secureTextEntry
+                  editable={!isLoading}
+                  returnKeyType="done"
+                  onSubmitEditing={handleAlterarSenha}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.alterarSenhaButton,
+                  isLoading && styles.buttonDisabled,
+                ]}
+                onPress={handleAlterarSenha}
+                disabled={isLoading}
+              >
+                <Text style={styles.alterarSenhaButtonText}>
+                  {isLoading ? "Alterando..." : "Alterar Senha"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Logout */}
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
+              <Text style={styles.logoutButtonText}>Sair do App</Text>
             </TouchableOpacity>
           </View>
-        </View>
-
-        {/* Logout */}
-        <View style={styles.section}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutButtonText}>Sair do App</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -184,9 +206,15 @@ const styles = StyleSheet.create({
     ...createTextStyle("body", "white"),
     opacity: 0.9,
   },
+  keyboardView: {
+    flex: 1,
+  },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     padding: theme.spacing.lg,
+    paddingBottom: Platform.OS === "ios" ? 30 : 50,
   },
   section: {
     marginBottom: theme.spacing.lg,
@@ -243,6 +271,7 @@ const styles = StyleSheet.create({
   alterarSenhaButtonText: {
     ...createTextStyle("body", "white"),
     fontWeight: "bold",
+    textAlign: "center",
   },
   logoutButton: {
     ...createButtonStyle("destructive", "md"),
@@ -252,6 +281,7 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     ...createTextStyle("body", "white"),
     fontWeight: "bold",
+    textAlign: "center",
   },
 });
 

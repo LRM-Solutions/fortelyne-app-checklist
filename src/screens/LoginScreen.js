@@ -71,6 +71,7 @@ export default function LoginScreen() {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <View style={styles.content}>
           {/* Header */}
@@ -95,6 +96,8 @@ export default function LoginScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                returnKeyType="next"
+                blurOnSubmit={false}
               />
               {emailError ? (
                 <Text style={styles.errorText}>{emailError}</Text>
@@ -115,6 +118,8 @@ export default function LoginScreen() {
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
               />
               {passwordError ? (
                 <Text style={styles.errorText}>{passwordError}</Text>

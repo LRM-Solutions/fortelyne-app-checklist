@@ -9,6 +9,8 @@ import {
   Alert,
   SafeAreaView,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
 import { getFormularioOrdem, enviarFormularioOrdem } from "../api/ordemApi";
@@ -254,93 +256,104 @@ const FormularioOrdem = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Formulário da Ordem</Text>
-          {ordem && (
-            <Text style={styles.subtitle}>
-              #{ordem.ordem_id} - {ordem.ordem_nome_cliente}
-            </Text>
-          )}
-        </View>
+      <View style={styles.header}>
+        <Text style={styles.title}>Formulário da Ordem</Text>
+        {ordem && (
+          <Text style={styles.subtitle}>
+            #{ordem.ordem_id} - {ordem.ordem_nome_cliente}
+          </Text>
+        )}
+      </View>
 
-        <View style={styles.content}>
-          {ordem && (
-            <View style={styles.ordemInfo}>
-              <Text style={styles.sectionTitle}>Informações da Ordem</Text>
-              <View style={styles.infoCard}>
-                <Text style={styles.infoLabel}>Cliente:</Text>
-                <Text style={styles.infoValue}>{ordem.ordem_nome_cliente}</Text>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+      >
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.scrollContentContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            {ordem && (
+              <View style={styles.ordemInfo}>
+                <Text style={styles.sectionTitle}>Informações da Ordem</Text>
+                <View style={styles.infoCard}>
+                  <Text style={styles.infoLabel}>Cliente:</Text>
+                  <Text style={styles.infoValue}>
+                    {ordem.ordem_nome_cliente}
+                  </Text>
 
-                <Text style={styles.infoLabel}>Endereço:</Text>
-                <Text style={styles.infoValue}>
-                  {ordem.ordem_endereco}
-                  {ordem.ordem_cidade && `, ${ordem.ordem_cidade}`}
-                  {ordem.ordem_estado && ` - ${ordem.ordem_estado}`}
-                  {ordem.ordem_cep && ` - ${ordem.ordem_cep}`}
-                </Text>
+                  <Text style={styles.infoLabel}>Endereço:</Text>
+                  <Text style={styles.infoValue}>
+                    {ordem.ordem_endereco}
+                    {ordem.ordem_cidade && `, ${ordem.ordem_cidade}`}
+                    {ordem.ordem_estado && ` - ${ordem.ordem_estado}`}
+                    {ordem.ordem_cep && ` - ${ordem.ordem_cep}`}
+                  </Text>
 
-                {ordem.ordem_tipo && (
-                  <>
-                    <Text style={styles.infoLabel}>Tipo:</Text>
-                    <Text style={styles.infoValue}>{ordem.ordem_tipo}</Text>
-                  </>
-                )}
+                  {ordem.ordem_tipo && (
+                    <>
+                      <Text style={styles.infoLabel}>Tipo:</Text>
+                      <Text style={styles.infoValue}>{ordem.ordem_tipo}</Text>
+                    </>
+                  )}
 
-                {ordem.ordem_descricao && (
-                  <>
-                    <Text style={styles.infoLabel}>Descrição:</Text>
-                    <Text style={styles.infoValue}>
-                      {ordem.ordem_descricao}
-                    </Text>
-                  </>
-                )}
+                  {ordem.ordem_descricao && (
+                    <>
+                      <Text style={styles.infoLabel}>Descrição:</Text>
+                      <Text style={styles.infoValue}>
+                        {ordem.ordem_descricao}
+                      </Text>
+                    </>
+                  )}
+                </View>
               </View>
+            )}
+
+            <View style={styles.formSection}>
+              <Text style={styles.sectionTitle}>
+                {formulario.formulario_nome}
+              </Text>
+
+              {formulario.perguntas &&
+                formulario.perguntas.map((pergunta) =>
+                  renderPergunta(pergunta)
+                )}
             </View>
-          )}
 
-          <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>
-              {formulario.formulario_nome}
-            </Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.submitButton, enviando && styles.buttonDisabled]}
+                onPress={handleSubmit}
+                disabled={enviando}
+              >
+                {enviando ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.submitButtonText}>Salvar Formulário</Text>
+                )}
+              </TouchableOpacity>
 
-            {formulario.perguntas &&
-              formulario.perguntas.map((pergunta) => renderPergunta(pergunta))}
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => navigation.goBack()}
+                disabled={enviando}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.submitButton, enviando && styles.buttonDisabled]}
-              onPress={handleSubmit}
-              disabled={enviando}
-            >
-              {enviando ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text style={styles.submitButtonText}>Salvar Formulário</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => navigation.goBack()}
-              disabled={enviando}
-            >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.primary,
-  },
-  container: {
     flex: 1,
     backgroundColor: theme.colors.background,
   },
@@ -357,6 +370,17 @@ const styles = StyleSheet.create({
   subtitle: {
     ...createTextStyle("body", "white"),
     opacity: 0.9,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  scrollContentContainer: {
+    flexGrow: 1,
+    paddingBottom: Platform.OS === "ios" ? 30 : 50,
   },
   loadingContainer: {
     flex: 1,
@@ -461,14 +485,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   textArea: {
-    backgroundColor: theme.colors.card,
+    backgroundColor: theme.colors.muted,
     borderWidth: 1,
     borderColor: theme.colors.border,
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
     fontSize: theme.fontSizes.base,
     color: theme.colors.foreground,
-    minHeight: 80,
+    minHeight: 100,
+    maxHeight: 150,
     textAlignVertical: "top",
   },
   inputGroup: {
@@ -480,7 +505,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   textInput: {
-    backgroundColor: theme.colors.card,
+    backgroundColor: theme.colors.muted,
     borderWidth: 1,
     borderColor: theme.colors.border,
     borderRadius: theme.borderRadius.md,
@@ -490,6 +515,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.md,
   },
   submitButton: {
     ...createButtonStyle("success", "lg"),
@@ -498,6 +524,7 @@ const styles = StyleSheet.create({
   submitButtonText: {
     ...createTextStyle("body", "white"),
     fontWeight: "bold",
+    textAlign: "center",
   },
   cancelButton: {
     ...createButtonStyle("outline", "lg"),
@@ -505,6 +532,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     ...createTextStyle("body", "muted"),
     fontWeight: "600",
+    textAlign: "center",
   },
   buttonDisabled: {
     opacity: 0.6,
