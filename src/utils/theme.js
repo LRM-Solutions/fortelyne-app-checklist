@@ -130,6 +130,9 @@ export const createButtonStyle = (variant = "primary", size = "md") => {
     primary: {
       backgroundColor: theme.colors.primary,
     },
+    success: {
+      backgroundColor: theme.colors.success,
+    },
     secondary: {
       backgroundColor: theme.colors.secondary,
     },

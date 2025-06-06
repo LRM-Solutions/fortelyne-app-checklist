@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.lg,
   },
   submitButton: {
-    ...createButtonStyle("primary", "lg"),
+    ...createButtonStyle("success", "lg"),
     marginBottom: theme.spacing.md,
   },
   submitButtonText: {
