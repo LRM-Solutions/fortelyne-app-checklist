@@ -7,7 +7,9 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  SafeAreaView,
 } from "react-native";
+import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
 
 const FormularioOrdem = ({ route, navigation }) => {
   const { ordem } = route.params || {};
@@ -40,148 +42,149 @@ const FormularioOrdem = ({ route, navigation }) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Formulário da Ordem</Text>
-        {ordem && (
-          <Text style={styles.subtitle}>
-            #{ordem.ordem_id} - {ordem.ordem_nome_cliente}
-          </Text>
-        )}
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Formulário da Ordem</Text>
+          {ordem && (
+            <Text style={styles.subtitle}>
+              #{ordem.ordem_id} - {ordem.ordem_nome_cliente}
+            </Text>
+          )}
+        </View>
 
-      <View style={styles.content}>
-        {ordem && (
-          <View style={styles.ordemInfo}>
-            <Text style={styles.sectionTitle}>Informações da Ordem</Text>
-            <View style={styles.infoCard}>
-              <Text style={styles.infoLabel}>Cliente:</Text>
-              <Text style={styles.infoValue}>{ordem.ordem_nome_cliente}</Text>
+        <View style={styles.content}>
+          {ordem && (
+            <View style={styles.ordemInfo}>
+              <Text style={styles.sectionTitle}>Informações da Ordem</Text>
+              <View style={styles.infoCard}>
+                <Text style={styles.infoLabel}>Cliente:</Text>
+                <Text style={styles.infoValue}>{ordem.ordem_nome_cliente}</Text>
 
-              <Text style={styles.infoLabel}>Endereço:</Text>
-              <Text style={styles.infoValue}>{ordem.ordem_endereco}</Text>
+                <Text style={styles.infoLabel}>Endereço:</Text>
+                <Text style={styles.infoValue}>{ordem.ordem_endereco}</Text>
 
-              <Text style={styles.infoLabel}>Tipo:</Text>
-              <Text style={styles.infoValue}>{ordem.ordem_tipo}</Text>
+                <Text style={styles.infoLabel}>Tipo:</Text>
+                <Text style={styles.infoValue}>{ordem.ordem_tipo}</Text>
 
-              <Text style={styles.infoLabel}>Descrição:</Text>
-              <Text style={styles.infoValue}>{ordem.ordem_descricao}</Text>
+                <Text style={styles.infoLabel}>Descrição:</Text>
+                <Text style={styles.infoValue}>{ordem.ordem_descricao}</Text>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.formSection}>
+            <Text style={styles.sectionTitle}>Preenchimento do Serviço</Text>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Observações do Serviço</Text>
+              <TextInput
+                style={[styles.textInput, styles.textArea]}
+                placeholder="Descreva como foi executado o serviço..."
+                value={formData.observacoes}
+                onChangeText={(value) =>
+                  handleInputChange("observacoes", value)
+                }
+                multiline
+                numberOfLines={4}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Materiais Utilizados</Text>
+              <TextInput
+                style={[styles.textInput, styles.textArea]}
+                placeholder="Liste os materiais utilizados..."
+                value={formData.materiais}
+                onChangeText={(value) => handleInputChange("materiais", value)}
+                multiline
+                numberOfLines={3}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Tempo Gasto (horas)</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Ex: 2.5"
+                value={formData.tempoGasto}
+                onChangeText={(value) => handleInputChange("tempoGasto", value)}
+                keyboardType="numeric"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Status Final</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Ex: Concluído, Pendente de material, etc."
+                value={formData.statusFinal}
+                onChangeText={(value) =>
+                  handleInputChange("statusFinal", value)
+                }
+              />
             </View>
           </View>
-        )}
 
-        <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Preenchimento do Serviço</Text>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleSubmit}
+            >
+              <Text style={styles.submitButtonText}>Salvar Formulário</Text>
+            </TouchableOpacity>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Observações do Serviço</Text>
-            <TextInput
-              style={[styles.textInput, styles.textArea]}
-              placeholder="Descreva como foi executado o serviço..."
-              value={formData.observacoes}
-              onChangeText={(value) => handleInputChange("observacoes", value)}
-              multiline
-              numberOfLines={4}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Materiais Utilizados</Text>
-            <TextInput
-              style={[styles.textInput, styles.textArea]}
-              placeholder="Liste os materiais utilizados..."
-              value={formData.materiais}
-              onChangeText={(value) => handleInputChange("materiais", value)}
-              multiline
-              numberOfLines={3}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Tempo Gasto (horas)</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Ex: 2.5"
-              value={formData.tempoGasto}
-              onChangeText={(value) => handleInputChange("tempoGasto", value)}
-              keyboardType="numeric"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Status Final</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Ex: Concluído, Pendente de material, etc."
-              value={formData.statusFinal}
-              onChangeText={(value) => handleInputChange("statusFinal", value)}
-            />
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.cancelButtonText}>Cancelar</Text>
+            </TouchableOpacity>
           </View>
         </View>
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Salvar Formulário</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.cancelButtonText}>Cancelar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.primary,
+  },
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: theme.colors.background,
   },
   header: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: theme.colors.primary,
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#fff",
+    ...createTextStyle("h2", "white"),
     marginBottom: 5,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#fff",
+    ...createTextStyle("body", "white"),
     opacity: 0.9,
   },
   content: {
-    padding: 20,
+    padding: theme.spacing.lg,
   },
   ordemInfo: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.lg,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 16,
+    ...createTextStyle("h3", "foreground"),
+    marginBottom: theme.spacing.md,
   },
   infoCard: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 12,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    backgroundColor: theme.colors.card,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    ...theme.shadows.sm,
   },
   infoLabel: {
     fontSize: 14,
@@ -196,56 +199,45 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   formSection: {
-    marginBottom: 24,
+    marginBottom: theme.spacing.lg,
   },
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: theme.spacing.lg,
   },
   inputLabel: {
-    fontSize: 16,
+    ...createTextStyle("body", "foreground"),
     fontWeight: "600",
-    color: "#333",
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   textInput: {
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.card,
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: "#333",
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.foreground,
   },
   textArea: {
     minHeight: 80,
     textAlignVertical: "top",
   },
   buttonContainer: {
-    marginTop: 20,
+    marginTop: theme.spacing.lg,
   },
   submitButton: {
-    backgroundColor: "#4CAF50",
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 12,
+    ...createButtonStyle("primary", "lg"),
+    marginBottom: theme.spacing.md,
   },
   submitButtonText: {
-    color: "#fff",
-    fontSize: 16,
+    ...createTextStyle("body", "white"),
     fontWeight: "bold",
   },
   cancelButton: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ddd",
+    ...createButtonStyle("outline", "lg"),
   },
   cancelButtonText: {
-    color: "#666",
-    fontSize: 16,
+    ...createTextStyle("body", "muted"),
     fontWeight: "600",
   },
 });

@@ -6,7 +6,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  SafeAreaView,
 } from "react-native";
+import { theme, createTextStyle } from "../utils/theme";
 
 // Mock data para ordens feitas
 const ordensFeitas = [
@@ -72,7 +74,7 @@ const OrdensFeitas = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Ordens Feitas</Text>
         <Text style={styles.subtitle}>Serviços concluídos</Text>
@@ -85,105 +87,88 @@ const OrdensFeitas = () => {
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: theme.colors.background,
   },
   header: {
-    backgroundColor: "#2196F3",
+    backgroundColor: theme.colors.primary,
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#fff",
+    ...createTextStyle("h2", "white"),
     marginBottom: 5,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#fff",
+    ...createTextStyle("body", "white"),
     opacity: 0.9,
   },
   listContainer: {
-    padding: 16,
+    padding: theme.spacing.md,
   },
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginBottom: 16,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.borderRadius.lg,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.md,
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    padding: theme.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: theme.colors.border,
   },
   orderId: {
-    fontSize: 18,
+    ...createTextStyle("body", "foreground"),
     fontWeight: "bold",
-    color: "#333",
   },
   statusContainer: {
-    backgroundColor: "#4CAF50",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    backgroundColor: theme.colors.success,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.lg,
   },
   statusText: {
-    color: "#fff",
-    fontSize: 12,
+    ...createTextStyle("small", "white"),
     fontWeight: "bold",
   },
   cardContent: {
-    padding: 16,
+    padding: theme.spacing.md,
   },
   clienteName: {
-    fontSize: 18,
+    ...createTextStyle("body", "foreground"),
     fontWeight: "bold",
-    color: "#333",
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   endereco: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 8,
+    ...createTextStyle("body", "muted"),
+    marginBottom: theme.spacing.sm,
   },
   tipo: {
-    fontSize: 16,
-    color: "#2196F3",
+    ...createTextStyle("body", "primary"),
     fontWeight: "600",
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   descricao: {
-    fontSize: 14,
-    color: "#666",
+    ...createTextStyle("body", "muted"),
     lineHeight: 20,
   },
   cardFooter: {
-    padding: 16,
+    padding: theme.spacing.md,
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
+    borderTopColor: theme.colors.border,
   },
   data: {
-    fontSize: 12,
-    color: "#999",
+    ...createTextStyle("small", "muted"),
   },
 });
 

@@ -14,6 +14,7 @@ import {
 import { login } from "../api/authApi";
 import { useAuth } from "../components/AuthProvider";
 import { validateEmail } from "../utils/helpers";
+import { theme, createButtonStyle, createTextStyle } from "../utils/theme";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -150,7 +151,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: theme.colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -158,73 +159,69 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 32,
+    paddingHorizontal: theme.spacing.xl,
   },
   header: {
-    marginBottom: 32,
+    marginBottom: theme.spacing.xl,
   },
   title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#1f2937",
+    ...createTextStyle("h1", "foreground"),
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   subtitle: {
-    color: "#6b7280",
+    ...createTextStyle("body", "muted"),
     textAlign: "center",
   },
   form: {
-    marginBottom: 32,
+    marginBottom: theme.spacing.xl,
   },
   inputContainer: {
-    marginBottom: 16,
+    marginBottom: theme.spacing.md,
   },
   label: {
-    color: "#374151",
-    marginBottom: 8,
+    ...createTextStyle("body", "foreground"),
+    marginBottom: theme.spacing.sm,
     fontWeight: "500",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    color: "#1f2937",
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    color: theme.colors.foreground,
+    fontSize: theme.fontSizes.base,
   },
   inputError: {
-    borderColor: "#ef4444",
+    borderColor: theme.colors.destructive,
   },
   errorText: {
-    color: "#ef4444",
-    fontSize: 12,
-    marginTop: 4,
+    ...createTextStyle("small", "destructive"),
+    marginTop: theme.spacing.xs,
   },
   button: {
-    backgroundColor: "#2563eb",
-    borderRadius: 8,
-    paddingVertical: 12,
-    marginTop: 24,
+    ...createButtonStyle("primary", "md"),
+    marginTop: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
   },
   buttonDisabled: {
     opacity: 0.5,
   },
   buttonText: {
-    color: "white",
+    ...createTextStyle("body", "white"),
     textAlign: "center",
     fontWeight: "600",
-    fontSize: 18,
   },
   footer: {
-    marginTop: 32,
+    marginTop: theme.spacing.xl,
   },
   footerText: {
-    color: "#6b7280",
+    ...createTextStyle("body", "muted"),
     textAlign: "center",
   },
   linkText: {
-    color: "#2563eb",
+    color: theme.colors.primary,
     fontWeight: "500",
   },
 });
