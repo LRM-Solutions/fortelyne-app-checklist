@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,38 +8,230 @@ import {
   TouchableOpacity,
   Alert,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
+import { getFormularioOrdem, enviarFormularioOrdem } from "../api/ordemApi";
 
 const FormularioOrdem = ({ route, navigation }) => {
   const { ordem } = route.params || {};
 
-  const [formData, setFormData] = useState({
-    observacoes: "",
-    materiais: "",
-    tempoGasto: "",
-    statusFinal: "",
-  });
+  const [formulario, setFormulario] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [enviando, setEnviando] = useState(false);
+  const [respostas, setRespostas] = useState({});
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({
+  useEffect(() => {
+    if (ordem?.ordem_id) {
+      carregarFormulario();
+    }
+  }, [ordem]);
+
+  const carregarFormulario = async () => {
+    setLoading(true);
+    try {
+      const response = await getFormularioOrdem(ordem.ordem_id);
+
+      console.log(response);
+
+      if (response.data && response.data.perguntas) {
+        setFormulario(response.data);
+        // Inicializar respostas vazias
+        const respostasIniciais = {};
+        response.data.perguntas.forEach((pergunta) => {
+          if (pergunta.pergunta_type_id === "TEXTO") {
+            respostasIniciais[pergunta.formulario_pergunta_id] = "";
+          } else if (pergunta.pergunta_type_id === "MULTIPLA") {
+            respostasIniciais[pergunta.formulario_pergunta_id] = [];
+          }
+        });
+        setRespostas(respostasIniciais);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar formulário:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMultiplaEscolha = (perguntaId, escolhaId) => {
+    setRespostas((prev) => {
+      const respostasAtuais = prev[perguntaId] || [];
+      const jaEscolhido = respostasAtuais.includes(escolhaId);
+
+      return {
+        ...prev,
+        [perguntaId]: jaEscolhido
+          ? respostasAtuais.filter((id) => id !== escolhaId)
+          : [...respostasAtuais, escolhaId],
+      };
+    });
+  };
+
+  const handleTextoChange = (perguntaId, texto) => {
+    setRespostas((prev) => ({
       ...prev,
-      [field]: value,
+      [perguntaId]: texto,
     }));
   };
 
-  const handleSubmit = () => {
-    Alert.alert(
-      "Formulário Enviado",
-      "Os dados da ordem de serviço foram salvos com sucesso!",
-      [
-        {
-          text: "OK",
-          onPress: () => navigation.goBack(),
-        },
-      ]
-    );
+  const handleSubmit = async () => {
+    // Validar se todas as perguntas foram respondidas
+    const perguntasNaoRespondidas = formulario.perguntas.filter((pergunta) => {
+      const resposta = respostas[pergunta.formulario_pergunta_id];
+      if (pergunta.pergunta_type_id === "TEXTO") {
+        return !resposta || resposta.trim() === "";
+      } else if (pergunta.pergunta_type_id === "MULTIPLA") {
+        return !resposta || resposta.length === 0;
+      }
+      return false;
+    });
+
+    if (perguntasNaoRespondidas.length > 0) {
+      Alert.alert(
+        "Formulário Incompleto",
+        "Por favor, responda todas as perguntas antes de enviar."
+      );
+      return;
+    }
+
+    try {
+      setEnviando(true);
+
+      const resultado = await enviarFormularioOrdem(ordem.ordem_id, respostas);
+
+      if (resultado.success) {
+        Alert.alert(
+          "Formulário Enviado",
+          "Os dados da ordem de serviço foram salvos com sucesso!",
+          [
+            {
+              text: "OK",
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
+      } else {
+        Alert.alert("Erro", resultado.error || "Erro ao enviar formulário");
+      }
+    } catch (error) {
+      console.error("Erro ao enviar formulário:", error);
+      Alert.alert("Erro", "Erro inesperado ao enviar formulário");
+    } finally {
+      setEnviando(false);
+    }
   };
+
+  const renderPergunta = (pergunta) => {
+    const resposta = respostas[pergunta.formulario_pergunta_id];
+
+    if (pergunta.pergunta_type_id === "MULTIPLA") {
+      return (
+        <View
+          key={pergunta.formulario_pergunta_id}
+          style={styles.perguntaContainer}
+        >
+          <Text style={styles.perguntaTitulo}>
+            {pergunta.pergunta_indice}. {pergunta.pergunta_titulo}
+          </Text>
+          {pergunta.respostaEscolha.map((escolha) => (
+            <TouchableOpacity
+              key={escolha.resposta_escolha_id}
+              style={styles.opcaoContainer}
+              onPress={() =>
+                handleMultiplaEscolha(
+                  pergunta.formulario_pergunta_id,
+                  escolha.resposta_escolha_id
+                )
+              }
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  (resposta || []).includes(escolha.resposta_escolha_id) &&
+                    styles.checkboxMarcado,
+                ]}
+              >
+                {(resposta || []).includes(escolha.resposta_escolha_id) && (
+                  <Text style={styles.checkmark}>✓</Text>
+                )}
+              </View>
+              <Text style={styles.opcaoTexto}>{escolha.resposta_label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
+    } else if (pergunta.pergunta_type_id === "TEXTO") {
+      return (
+        <View
+          key={pergunta.formulario_pergunta_id}
+          style={styles.perguntaContainer}
+        >
+          <Text style={styles.perguntaTitulo}>
+            {pergunta.pergunta_indice}. {pergunta.pergunta_titulo}
+          </Text>
+          <TextInput
+            style={styles.textArea}
+            value={resposta || ""}
+            onChangeText={(texto) =>
+              handleTextoChange(pergunta.formulario_pergunta_id, texto)
+            }
+            placeholder="Digite sua resposta..."
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+        </View>
+      );
+    }
+
+    return null;
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Carregando Formulário</Text>
+          {ordem && (
+            <Text style={styles.subtitle}>
+              #{ordem.ordem_id} - {ordem.ordem_nome_cliente}
+            </Text>
+          )}
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Carregando formulário...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!formulario) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Erro</Text>
+          {ordem && (
+            <Text style={styles.subtitle}>
+              #{ordem.ordem_id} - {ordem.ordem_nome_cliente}
+            </Text>
+          )}
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>
+            Não foi possível carregar o formulário para esta ordem.
+          </Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={carregarFormulario}
+          >
+            <Text style={styles.retryButtonText}>Tentar novamente</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -62,81 +254,58 @@ const FormularioOrdem = ({ route, navigation }) => {
                 <Text style={styles.infoValue}>{ordem.ordem_nome_cliente}</Text>
 
                 <Text style={styles.infoLabel}>Endereço:</Text>
-                <Text style={styles.infoValue}>{ordem.ordem_endereco}</Text>
+                <Text style={styles.infoValue}>
+                  {ordem.ordem_endereco}
+                  {ordem.ordem_cidade && `, ${ordem.ordem_cidade}`}
+                  {ordem.ordem_estado && ` - ${ordem.ordem_estado}`}
+                  {ordem.ordem_cep && ` - ${ordem.ordem_cep}`}
+                </Text>
 
-                <Text style={styles.infoLabel}>Tipo:</Text>
-                <Text style={styles.infoValue}>{ordem.ordem_tipo}</Text>
+                {ordem.ordem_tipo && (
+                  <>
+                    <Text style={styles.infoLabel}>Tipo:</Text>
+                    <Text style={styles.infoValue}>{ordem.ordem_tipo}</Text>
+                  </>
+                )}
 
-                <Text style={styles.infoLabel}>Descrição:</Text>
-                <Text style={styles.infoValue}>{ordem.ordem_descricao}</Text>
+                {ordem.ordem_descricao && (
+                  <>
+                    <Text style={styles.infoLabel}>Descrição:</Text>
+                    <Text style={styles.infoValue}>
+                      {ordem.ordem_descricao}
+                    </Text>
+                  </>
+                )}
               </View>
             </View>
           )}
 
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Preenchimento do Serviço</Text>
+            <Text style={styles.sectionTitle}>
+              {formulario.formulario_nome}
+            </Text>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Observações do Serviço</Text>
-              <TextInput
-                style={[styles.textInput, styles.textArea]}
-                placeholder="Descreva como foi executado o serviço..."
-                value={formData.observacoes}
-                onChangeText={(value) =>
-                  handleInputChange("observacoes", value)
-                }
-                multiline
-                numberOfLines={4}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Materiais Utilizados</Text>
-              <TextInput
-                style={[styles.textInput, styles.textArea]}
-                placeholder="Liste os materiais utilizados..."
-                value={formData.materiais}
-                onChangeText={(value) => handleInputChange("materiais", value)}
-                multiline
-                numberOfLines={3}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Tempo Gasto (horas)</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Ex: 2.5"
-                value={formData.tempoGasto}
-                onChangeText={(value) => handleInputChange("tempoGasto", value)}
-                keyboardType="numeric"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Status Final</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Ex: Concluído, Pendente de material, etc."
-                value={formData.statusFinal}
-                onChangeText={(value) =>
-                  handleInputChange("statusFinal", value)
-                }
-              />
-            </View>
+            {formulario.perguntas &&
+              formulario.perguntas.map((pergunta) => renderPergunta(pergunta))}
           </View>
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={styles.submitButton}
+              style={[styles.submitButton, enviando && styles.buttonDisabled]}
               onPress={handleSubmit}
+              disabled={enviando}
             >
-              <Text style={styles.submitButtonText}>Salvar Formulário</Text>
+              {enviando ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text style={styles.submitButtonText}>Salvar Formulário</Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => navigation.goBack()}
+              disabled={enviando}
             >
               <Text style={styles.cancelButtonText}>Cancelar</Text>
             </TouchableOpacity>
@@ -170,6 +339,34 @@ const styles = StyleSheet.create({
     ...createTextStyle("body", "white"),
     opacity: 0.9,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: theme.spacing.lg,
+  },
+  loadingText: {
+    ...createTextStyle("body", "muted"),
+    marginTop: theme.spacing.md,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: theme.spacing.lg,
+  },
+  emptyText: {
+    ...createTextStyle("body", "muted"),
+    textAlign: "center",
+    marginBottom: theme.spacing.lg,
+  },
+  retryButton: {
+    ...createButtonStyle("outline", "md"),
+  },
+  retryButtonText: {
+    ...createTextStyle("body", "primary"),
+    fontWeight: "600",
+  },
   content: {
     padding: theme.spacing.lg,
   },
@@ -201,6 +398,60 @@ const styles = StyleSheet.create({
   formSection: {
     marginBottom: theme.spacing.lg,
   },
+  perguntaContainer: {
+    backgroundColor: theme.colors.card,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.lg,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.sm,
+  },
+  perguntaTitulo: {
+    ...createTextStyle("body", "foreground"),
+    fontWeight: "600",
+    marginBottom: theme.spacing.md,
+    fontSize: 16,
+  },
+  opcaoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xs,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    borderRadius: 4,
+    marginRight: theme.spacing.sm,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.colors.background,
+  },
+  checkboxMarcado: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  checkmark: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  opcaoTexto: {
+    ...createTextStyle("body", "foreground"),
+    flex: 1,
+  },
+  textArea: {
+    backgroundColor: theme.colors.card,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.foreground,
+    minHeight: 80,
+    textAlignVertical: "top",
+  },
   inputGroup: {
     marginBottom: theme.spacing.lg,
   },
@@ -217,10 +468,6 @@ const styles = StyleSheet.create({
     padding: theme.spacing.md,
     fontSize: theme.fontSizes.base,
     color: theme.colors.foreground,
-  },
-  textArea: {
-    minHeight: 80,
-    textAlignVertical: "top",
   },
   buttonContainer: {
     marginTop: theme.spacing.lg,
@@ -239,6 +486,9 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     ...createTextStyle("body", "muted"),
     fontWeight: "600",
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });
 
