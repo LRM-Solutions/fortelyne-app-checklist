@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,71 +7,86 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { theme, createTextStyle } from "../utils/theme";
-
-// Mock data para ordens feitas
-const ordensFeitas = [
-  {
-    ordem_id: "001",
-    ordem_nome_cliente: "João Silva",
-    ordem_endereco: "Rua das Flores, 123 - Centro",
-    ordem_data: "2024-01-15",
-    ordem_status: "Concluída",
-    ordem_tipo: "Instalação",
-    ordem_descricao: "Instalação de sistema elétrico residencial",
-  },
-  {
-    ordem_id: "002",
-    ordem_nome_cliente: "Maria Santos",
-    ordem_endereco: "Av. Principal, 456 - Jardim",
-    ordem_data: "2024-01-14",
-    ordem_status: "Concluída",
-    ordem_tipo: "Manutenção",
-    ordem_descricao: "Manutenção preventiva em quadro elétrico",
-  },
-  {
-    ordem_id: "003",
-    ordem_nome_cliente: "Carlos Oliveira",
-    ordem_endereco: "Rua da Paz, 789 - Vila Nova",
-    ordem_data: "2024-01-13",
-    ordem_status: "Concluída",
-    ordem_tipo: "Reparo",
-    ordem_descricao: "Reparo de tomadas e interruptores",
-  },
-  {
-    ordem_id: "004",
-    ordem_nome_cliente: "Ana Costa",
-    ordem_endereco: "Rua do Comércio, 321 - Centro",
-    ordem_data: "2024-01-12",
-    ordem_status: "Concluída",
-    ordem_tipo: "Instalação",
-    ordem_descricao: "Instalação de pontos de energia em escritório",
-  },
-];
+import { getOrdensConcluidas } from "../api/ordemApi";
+import { useFocusEffect } from "@react-navigation/native";
 
 const OrdensFeitas = () => {
+  const [ordensFeitas, setOrdensFeitas] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const carregarOrdens = async () => {
+    setLoading(true);
+    try {
+      const ordens = await getOrdensConcluidas();
+      setOrdensFeitas(ordens);
+    } catch (error) {
+      console.error("Erro ao carregar ordens:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      carregarOrdens();
+    }, [])
+  );
+
+  const formatarData = (dataString) => {
+    if (!dataString) return "Data não informada";
+    const data = new Date(dataString);
+    return data.toLocaleDateString("pt-BR");
+  };
   const renderOrdemCard = ({ item }) => (
     <TouchableOpacity style={styles.card}>
       <View style={styles.cardHeader}>
         <Text style={styles.orderId}>#{item.ordem_id}</Text>
         <View style={styles.statusContainer}>
-          <Text style={styles.statusText}>{item.ordem_status}</Text>
+          <Text style={styles.statusText}>Concluída</Text>
         </View>
       </View>
 
       <View style={styles.cardContent}>
         <Text style={styles.clienteName}>{item.ordem_nome_cliente}</Text>
-        <Text style={styles.endereco}>{item.ordem_endereco}</Text>
-        <Text style={styles.tipo}>{item.ordem_tipo}</Text>
-        <Text style={styles.descricao}>{item.ordem_descricao}</Text>
+        <Text style={styles.endereco}>
+          {item.ordem_endereco}
+          {item.ordem_cidade && `, ${item.ordem_cidade}`}
+          {item.ordem_estado && ` - ${item.ordem_estado}`}
+          {item.ordem_cep && ` - ${item.ordem_cep}`}
+        </Text>
       </View>
 
       <View style={styles.cardFooter}>
-        <Text style={styles.data}>Data: {item.ordem_data}</Text>
+        <Text style={styles.data}>Data: {formatarData(item.ordem_data)}</Text>
       </View>
     </TouchableOpacity>
   );
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>
+        Não foram encontradas ordens de serviço concluídas
+      </Text>
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Ordens Feitas</Text>
+          <Text style={styles.subtitle}>Serviços concluídos</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Carregando ordens...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -83,9 +98,10 @@ const OrdensFeitas = () => {
       <FlatList
         data={ordensFeitas}
         renderItem={renderOrdemCard}
-        keyExtractor={(item) => item.ordem_id}
+        keyExtractor={(item) => item.ordem_id.toString()}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={renderEmptyState}
       />
     </SafeAreaView>
   );
@@ -169,6 +185,26 @@ const styles = StyleSheet.create({
   },
   data: {
     ...createTextStyle("small", "muted"),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: theme.spacing.xl,
+  },
+  loadingText: {
+    ...createTextStyle("body", "muted"),
+    marginTop: theme.spacing.md,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: theme.spacing.xl,
+  },
+  emptyText: {
+    ...createTextStyle("body", "muted"),
+    textAlign: "center",
   },
 });
 

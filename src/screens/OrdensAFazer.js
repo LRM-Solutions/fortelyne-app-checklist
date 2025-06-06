@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,50 +6,39 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
-
-// Mock data para ordens a fazer
-const ordensAFazer = [
-  {
-    ordem_id: "005",
-    ordem_nome_cliente: "Pedro Almeida",
-    ordem_endereco: "Rua dos Sonhos, 555 - Bairro Alto",
-    ordem_data: "2024-01-16",
-    ordem_status: "Pendente",
-    ordem_tipo: "Instalação",
-    ordem_descricao: "Instalação de chuveiro elétrico e tomadas",
-  },
-  {
-    ordem_id: "006",
-    ordem_nome_cliente: "Lucia Ferreira",
-    ordem_endereco: "Av. Central, 888 - Centro",
-    ordem_data: "2024-01-17",
-    ordem_status: "Agendada",
-    ordem_tipo: "Manutenção",
-    ordem_descricao: "Verificação de disjuntores e fiação",
-  },
-  {
-    ordem_id: "007",
-    ordem_nome_cliente: "Roberto Lima",
-    ordem_endereco: "Rua Nova, 222 - Jardim América",
-    ordem_data: "2024-01-18",
-    ordem_status: "Pendente",
-    ordem_tipo: "Reparo",
-    ordem_descricao: "Reparo urgente em quadro elétrico",
-  },
-  {
-    ordem_id: "008",
-    ordem_nome_cliente: "Sandra Ribeiro",
-    ordem_endereco: "Rua das Palmeiras, 444 - Vila Bela",
-    ordem_data: "2024-01-19",
-    ordem_status: "Agendada",
-    ordem_tipo: "Instalação",
-    ordem_descricao: "Instalação completa de sistema elétrico",
-  },
-];
+import { getOrdensAFazer } from "../api/ordemApi";
+import { useFocusEffect } from "@react-navigation/native";
 
 const OrdensAFazer = ({ navigation }) => {
+  const [ordensAFazer, setOrdensAFazer] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const carregarOrdens = async () => {
+    setLoading(true);
+    try {
+      const ordens = await getOrdensAFazer();
+      setOrdensAFazer(ordens);
+    } catch (error) {
+      console.error("Erro ao carregar ordens:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      carregarOrdens();
+    }, [])
+  );
+
+  const formatarData = (dataString) => {
+    if (!dataString) return "Data não informada";
+    const data = new Date(dataString);
+    return data.toLocaleDateString("pt-BR");
+  };
   const getStatusColor = (status) => {
     switch (status) {
       case "Pendente":
@@ -80,23 +69,49 @@ const OrdensAFazer = ({ navigation }) => {
             { backgroundColor: theme.colors.destructive },
           ]}
         >
-          <Text style={styles.statusText}>{item.ordem_status}</Text>
+          <Text style={styles.statusText}>Pendente</Text>
         </View>
       </View>
 
       <View style={styles.cardContent}>
         <Text style={styles.clienteName}>{item.ordem_nome_cliente}</Text>
-        <Text style={styles.endereco}>{item.ordem_endereco}</Text>
-        <Text style={styles.tipo}>{item.ordem_tipo}</Text>
-        <Text style={styles.descricao}>{item.ordem_descricao}</Text>
+        <Text style={styles.endereco}>
+          {item.ordem_endereco}
+          {item.ordem_cidade && `, ${item.ordem_cidade}`}
+          {item.ordem_estado && ` - ${item.ordem_estado}`}
+          {item.ordem_cep && ` - ${item.ordem_cep}`}
+        </Text>
       </View>
 
       <View style={styles.cardFooter}>
-        <Text style={styles.data}>Data prevista: {item.ordem_data}</Text>
+        <Text style={styles.data}>Data: {formatarData(item.ordem_data)}</Text>
         <Text style={styles.tapHint}>Toque para abrir</Text>
       </View>
     </TouchableOpacity>
   );
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>
+        Não foram encontradas ordens de serviço pendentes
+      </Text>
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Ordens a Fazer</Text>
+          <Text style={styles.subtitle}>Serviços pendentes</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>Carregando ordens...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -108,9 +123,10 @@ const OrdensAFazer = ({ navigation }) => {
       <FlatList
         data={ordensAFazer}
         renderItem={renderOrdemCard}
-        keyExtractor={(item) => item.ordem_id}
+        keyExtractor={(item) => item.ordem_id.toString()}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={renderEmptyState}
       />
     </SafeAreaView>
   );
@@ -200,6 +216,26 @@ const styles = StyleSheet.create({
   tapHint: {
     ...createTextStyle("small", "primary"),
     fontWeight: "600",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: theme.spacing.xl,
+  },
+  loadingText: {
+    ...createTextStyle("body", "muted"),
+    marginTop: theme.spacing.md,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: theme.spacing.xl,
+  },
+  emptyText: {
+    ...createTextStyle("body", "muted"),
+    textAlign: "center",
   },
 });
 
