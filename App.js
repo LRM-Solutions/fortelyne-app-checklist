@@ -8,6 +8,7 @@ import LoginScreen from "./src/screens/LoginScreen";
 import LoadingScreen from "./src/components/LoadingScreen";
 import OrdensNavigator from "./src/screens/OrdensNavigator";
 import FormularioOrdem from "./src/screens/FormularioOrdem";
+import FormularioSucesso from "./src/screens/FormularioSucesso";
 
 const Stack = createStackNavigator();
 
@@ -38,6 +39,14 @@ function AppContent() {
             headerShown: true,
             title: "Formulário",
             headerBackTitle: "Voltar",
+          }}
+        />
+        <Stack.Screen
+          name="FormularioSucesso"
+          component={FormularioSucesso}
+          options={{
+            headerShown: false,
+            gestureEnabled: false,
           }}
         />
       </Stack.Navigator>

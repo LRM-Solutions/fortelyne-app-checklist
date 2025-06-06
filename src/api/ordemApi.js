@@ -105,33 +105,72 @@ export const getFormularioOrdem = async (ordemId) => {
 };
 
 // Função para enviar formulário preenchido
-export const enviarFormularioOrdem = async (ordemId, respostas) => {
+export const enviarFormularioOrdem = async (ordemId, respostas, formulario) => {
   try {
     const token = await getAuthToken();
 
     if (!token) {
       Alert.alert("Erro", "Token de autenticação não encontrado");
-      return false;
+      return { success: false, error: "Token de autenticação não encontrado" };
     }
 
-    // Mock temporário para teste - remover quando API estiver funcionando
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simula delay da API
+    // Transformar respostas para o formato esperado pela API
+    const respostasFormatadas = [];
 
-    console.log("Enviando formulário:", { ordemId, respostas });
-    return { success: true, message: "Formulário enviado com sucesso!" };
+    Object.keys(respostas).forEach((perguntaId) => {
+      const resposta = respostas[perguntaId];
+      const pergunta = formulario.perguntas.find(
+        (p) => p.formulario_pergunta_id.toString() === perguntaId.toString()
+      );
 
-    // Código real da API (comentado temporariamente)
-    /*
-    const response = await api.post(`/enviar-formulario-ordem/${ordemId}`, {
-      respostas
-    }, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      if (!pergunta) return;
+
+      if (pergunta.pergunta_type_id === "TEXTO") {
+        // Para perguntas de texto
+        respostasFormatadas.push({
+          formulario_pergunta_id: parseInt(perguntaId),
+          resposta_texto: resposta,
+          ordem_id: ordemId,
+          resposta_escolha_id: null,
+        });
+      } else if (pergunta.pergunta_type_id === "MULTIPLA") {
+        // Para perguntas de múltipla escolha
+        resposta.forEach((escolhaId) => {
+          const escolha = pergunta.respostaEscolha.find(
+            (e) => e.resposta_escolha_id === escolhaId
+          );
+          if (escolha) {
+            respostasFormatadas.push({
+              formulario_pergunta_id: parseInt(perguntaId),
+              resposta_texto: escolha.resposta_label,
+              ordem_id: ordemId,
+              resposta_escolha_id: escolhaId,
+            });
+          }
+        });
+      }
     });
 
-    return response.data || { success: false };
-    */
+    console.log("Payload formatado:", {
+      ordem_id: ordemId,
+      respostas: respostasFormatadas,
+    });
+
+    const response = await api.post(
+      "/envio-formulario",
+      {
+        ordem_id: ordemId,
+        respostas: respostasFormatadas,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log("Resposta do envio:", response.data);
+    return response.data;
   } catch (error) {
     console.error("Erro ao enviar formulário:", error);
 
@@ -143,7 +182,6 @@ export const enviarFormularioOrdem = async (ordemId, respostas) => {
       errorMessage = error.message;
     }
 
-    Alert.alert("Erro", errorMessage);
     return { success: false, error: errorMessage };
   }
 };

@@ -95,31 +95,50 @@ const FormularioOrdem = ({ route, navigation }) => {
       return;
     }
 
-    try {
-      setEnviando(true);
+    // Confirmação antes do envio
+    Alert.alert(
+      "Confirmar Envio",
+      "Deseja realmente enviar este formulário? Esta ação não poderá ser desfeita.",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Enviar",
+          style: "default",
+          onPress: async () => {
+            try {
+              setEnviando(true);
 
-      const resultado = await enviarFormularioOrdem(ordem.ordem_id, respostas);
+              const resultado = await enviarFormularioOrdem(
+                ordem.ordem_id,
+                respostas,
+                formulario
+              );
 
-      if (resultado.success) {
-        Alert.alert(
-          "Formulário Enviado",
-          "Os dados da ordem de serviço foram salvos com sucesso!",
-          [
-            {
-              text: "OK",
-              onPress: () => navigation.goBack(),
-            },
-          ]
-        );
-      } else {
-        Alert.alert("Erro", resultado.error || "Erro ao enviar formulário");
-      }
-    } catch (error) {
-      console.error("Erro ao enviar formulário:", error);
-      Alert.alert("Erro", "Erro inesperado ao enviar formulário");
-    } finally {
-      setEnviando(false);
-    }
+              if (resultado.success) {
+                // Navegar para tela de sucesso
+                navigation.replace("FormularioSucesso", {
+                  resultado,
+                  formulario,
+                });
+              } else {
+                Alert.alert(
+                  "Erro",
+                  resultado.error || "Erro ao enviar formulário"
+                );
+              }
+            } catch (error) {
+              console.error("Erro ao enviar formulário:", error);
+              Alert.alert("Erro", "Erro inesperado ao enviar formulário");
+            } finally {
+              setEnviando(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const renderPergunta = (pergunta) => {
