@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
 import { getFormularioOrdem, enviarFormularioOrdem } from "../api/ordemApi";
+import AssinaturaComponent from "../components/AssinaturaComponent";
 
 const FormularioOrdem = ({ route, navigation }) => {
   const { ordem } = route.params || {};
@@ -45,6 +46,10 @@ const FormularioOrdem = ({ route, navigation }) => {
             respostasIniciais[pergunta.formulario_pergunta_id] = "";
           } else if (pergunta.pergunta_type_id === "MULTIPLA") {
             respostasIniciais[pergunta.formulario_pergunta_id] = [];
+          } else if (pergunta.pergunta_type_id === "UNICA") {
+            respostasIniciais[pergunta.formulario_pergunta_id] = null;
+          } else if (pergunta.pergunta_type_id === "ASSINATURA") {
+            respostasIniciais[pergunta.formulario_pergunta_id] = null;
           }
         });
         setRespostas(respostasIniciais);
@@ -54,6 +59,20 @@ const FormularioOrdem = ({ route, navigation }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUnicaEscolha = (perguntaId, escolhaId) => {
+    setRespostas((prev) => ({
+      ...prev,
+      [perguntaId]: escolhaId,
+    }));
+  };
+
+  const handleAssinatura = (perguntaId, assinaturaBase64) => {
+    setRespostas((prev) => ({
+      ...prev,
+      [perguntaId]: assinaturaBase64,
+    }));
   };
 
   const handleMultiplaEscolha = (perguntaId, escolhaId) => {
@@ -85,6 +104,10 @@ const FormularioOrdem = ({ route, navigation }) => {
         return !resposta || resposta.trim() === "";
       } else if (pergunta.pergunta_type_id === "MULTIPLA") {
         return !resposta || resposta.length === 0;
+      } else if (pergunta.pergunta_type_id === "UNICA") {
+        return resposta === null || resposta === undefined;
+      } else if (pergunta.pergunta_type_id === "ASSINATURA") {
+        return !resposta;
       }
       return false;
     });
@@ -182,6 +205,42 @@ const FormularioOrdem = ({ route, navigation }) => {
           ))}
         </View>
       );
+    } else if (pergunta.pergunta_type_id === "UNICA") {
+      return (
+        <View
+          key={pergunta.formulario_pergunta_id}
+          style={styles.perguntaContainer}
+        >
+          <Text style={styles.perguntaTitulo}>
+            {pergunta.pergunta_indice}. {pergunta.pergunta_titulo}
+          </Text>
+          {pergunta.respostaEscolha.map((escolha) => (
+            <TouchableOpacity
+              key={escolha.resposta_escolha_id}
+              style={styles.opcaoContainer}
+              onPress={() =>
+                handleUnicaEscolha(
+                  pergunta.formulario_pergunta_id,
+                  escolha.resposta_escolha_id
+                )
+              }
+            >
+              <View
+                style={[
+                  styles.radioButton,
+                  resposta === escolha.resposta_escolha_id &&
+                    styles.radioButtonMarcado,
+                ]}
+              >
+                {resposta === escolha.resposta_escolha_id && (
+                  <View style={styles.radioButtonInner} />
+                )}
+              </View>
+              <Text style={styles.opcaoTexto}>{escolha.resposta_label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
     } else if (pergunta.pergunta_type_id === "TEXTO") {
       return (
         <View
@@ -201,6 +260,24 @@ const FormularioOrdem = ({ route, navigation }) => {
             multiline
             numberOfLines={4}
             textAlignVertical="top"
+          />
+        </View>
+      );
+    } else if (pergunta.pergunta_type_id === "ASSINATURA") {
+      return (
+        <View
+          key={pergunta.formulario_pergunta_id}
+          style={styles.perguntaContainer}
+        >
+          <Text style={styles.perguntaTitulo}>
+            {pergunta.pergunta_indice}. {pergunta.pergunta_titulo}
+          </Text>
+          <AssinaturaComponent
+            onSignatureCapture={(assinatura) =>
+              handleAssinatura(pergunta.formulario_pergunta_id, assinatura)
+            }
+            value={resposta}
+            disabled={enviando}
           />
         </View>
       );
@@ -479,6 +556,26 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 12,
     fontWeight: "bold",
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    borderRadius: 10,
+    marginRight: theme.spacing.sm,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.colors.background,
+  },
+  radioButtonMarcado: {
+    borderColor: theme.colors.primary,
+  },
+  radioButtonInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: theme.colors.primary,
   },
   opcaoTexto: {
     ...createTextStyle("body", "foreground"),

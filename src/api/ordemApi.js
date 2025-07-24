@@ -129,24 +129,39 @@ export const enviarFormularioOrdem = async (ordemId, respostas, formulario) => {
         // Para perguntas de texto
         respostasFormatadas.push({
           formulario_pergunta_id: parseInt(perguntaId),
-          resposta_texto: resposta,
-          ordem_id: ordemId,
+          tipo_pergunta: "TEXTO",
           resposta_escolha_id: null,
+          resposta_texto: resposta,
+          assinatura_base64: null,
         });
       } else if (pergunta.pergunta_type_id === "MULTIPLA") {
         // Para perguntas de múltipla escolha
         resposta.forEach((escolhaId) => {
-          const escolha = pergunta.respostaEscolha.find(
-            (e) => e.resposta_escolha_id === escolhaId
-          );
-          if (escolha) {
-            respostasFormatadas.push({
-              formulario_pergunta_id: parseInt(perguntaId),
-              resposta_texto: escolha.resposta_label,
-              ordem_id: ordemId,
-              resposta_escolha_id: escolhaId,
-            });
-          }
+          respostasFormatadas.push({
+            formulario_pergunta_id: parseInt(perguntaId),
+            tipo_pergunta: "MULTIPLA",
+            resposta_escolha_id: escolhaId,
+            resposta_texto: null,
+            assinatura_base64: null,
+          });
+        });
+      } else if (pergunta.pergunta_type_id === "UNICA") {
+        // Para perguntas de escolha única
+        respostasFormatadas.push({
+          formulario_pergunta_id: parseInt(perguntaId),
+          tipo_pergunta: "UNICA",
+          resposta_escolha_id: resposta,
+          resposta_texto: null,
+          assinatura_base64: null,
+        });
+      } else if (pergunta.pergunta_type_id === "ASSINATURA") {
+        // Para perguntas de assinatura
+        respostasFormatadas.push({
+          formulario_pergunta_id: parseInt(perguntaId),
+          tipo_pergunta: "ASSINATURA",
+          resposta_escolha_id: null,
+          resposta_texto: null,
+          assinatura_base64: resposta,
         });
       }
     });
