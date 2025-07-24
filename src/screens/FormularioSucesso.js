@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Image,
 } from "react-native";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
 
@@ -17,23 +18,71 @@ const FormularioSucesso = ({ route, navigation }) => {
     navigation.navigate("OrdensNavigator", { screen: "afazer" });
   };
 
-  const renderResumoResposta = (resposta, index) => {
-    // Encontrar a pergunta correspondente
-    const pergunta = formulario.perguntas.find(
-      (p) => p.formulario_pergunta_id === resposta.formulario_pergunta_id
-    );
+  const renderResumoResposta = (pergunta, respostasPergunta, index) => {
+    if (!pergunta || !respostasPergunta || respostasPergunta.length === 0)
+      return null;
 
-    if (!pergunta) return null;
+    console.log("Debug renderResumoResposta:", {
+      pergunta: pergunta.pergunta_titulo,
+      tipo: pergunta.pergunta_type_id,
+      respostasPergunta,
+    });
+
+    let respostaTexto = "";
+
+    // Definir o texto da resposta baseado no tipo
+    if (pergunta.pergunta_type_id === "TEXTO") {
+      const resposta = respostasPergunta[0];
+      respostaTexto = resposta.resposta_texto || "Não respondido";
+    } else if (pergunta.pergunta_type_id === "MULTIPLA") {
+      // Para múltipla escolha, listar todas as opções selecionadas
+      const opcoesSelecionadas = respostasPergunta.map((resposta) => {
+        const escolha = pergunta.respostaEscolha?.find(
+          (e) => e.resposta_escolha_id === resposta.resposta_escolha_id
+        );
+        return escolha?.resposta_label || "Opção não encontrada";
+      });
+      respostaTexto = opcoesSelecionadas.join(", ");
+    } else if (pergunta.pergunta_type_id === "UNICA") {
+      // Para única escolha, buscar o texto da escolha
+      const resposta = respostasPergunta[0];
+      const escolha = pergunta.respostaEscolha?.find(
+        (e) => e.resposta_escolha_id === resposta.resposta_escolha_id
+      );
+      respostaTexto = escolha?.resposta_label || "Opção não encontrada";
+    } else if (pergunta.pergunta_type_id === "ASSINATURA") {
+      const resposta = respostasPergunta[0];
+      console.log("Debug ASSINATURA:", {
+        resposta,
+        resposta_image_url: resposta.resposta_image_url,
+        hasAssinatura: !!resposta.resposta_image_url,
+      });
+      respostaTexto = resposta.resposta_image_url
+        ? "✓ Assinatura capturada"
+        : "Não assinado";
+    }
+
+    const primeiraResposta = respostasPergunta[0];
 
     return (
       <View
-        key={`${resposta.resposta_final_id}-${index}`}
+        key={`pergunta-${pergunta.formulario_pergunta_id}-${index}`}
         style={styles.respostaContainer}
       >
         <Text style={styles.perguntaTitle}>
           {pergunta.pergunta_indice}. {pergunta.pergunta_titulo}
         </Text>
-        <Text style={styles.respostaTexto}>{resposta.resposta_texto}</Text>
+        <Text style={styles.respostaTexto}>{respostaTexto}</Text>
+        {pergunta.pergunta_type_id === "ASSINATURA" &&
+          primeiraResposta?.resposta_image_url && (
+            <View style={styles.assinaturaPreview}>
+              <Image
+                source={{ uri: primeiraResposta.resposta_image_url }}
+                style={styles.assinaturaImage}
+                resizeMode="contain"
+              />
+            </View>
+          )}
       </View>
     );
   };
@@ -86,10 +135,26 @@ const FormularioSucesso = ({ route, navigation }) => {
 
           <View style={styles.resumoSection}>
             <Text style={styles.sectionTitle}>Resumo das Respostas</Text>
-            {resultado?.data?.respostas &&
-              resultado.data.respostas.map((resposta, index) =>
-                renderResumoResposta(resposta, index)
-              )}
+            {resultado?.data?.respostas && (
+              <>
+                {formulario.perguntas.map((pergunta, perguntaIndex) => {
+                  // Buscar todas as respostas para esta pergunta
+                  const respostasPergunta = resultado.data.respostas.filter(
+                    (r) =>
+                      r.formulario_pergunta_id ===
+                      pergunta.formulario_pergunta_id
+                  );
+
+                  if (respostasPergunta.length === 0) return null;
+
+                  return renderResumoResposta(
+                    pergunta,
+                    respostasPergunta,
+                    perguntaIndex
+                  );
+                })}
+              </>
+            )}
           </View>
 
           <View style={styles.buttonContainer}>
@@ -190,6 +255,19 @@ const styles = StyleSheet.create({
     ...createTextStyle("body", "muted"),
     fontSize: 15,
     lineHeight: 22,
+  },
+  assinaturaPreview: {
+    marginTop: theme.spacing.sm,
+    height: 200,
+    backgroundColor: "white",
+    borderRadius: theme.borderRadius.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.xs,
+  },
+  assinaturaImage: {
+    width: "100%",
+    height: "100%",
   },
   buttonContainer: {
     marginTop: theme.spacing.lg,
