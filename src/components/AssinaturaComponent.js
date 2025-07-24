@@ -7,6 +7,7 @@ import {
   Alert,
   Modal,
   Dimensions,
+  Image,
 } from "react-native";
 import SignatureCanvas from "react-native-signature-canvas";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
@@ -104,17 +105,20 @@ const AssinaturaComponent = ({
     }
     .m-signature-pad--body {
       position: absolute;
-      left: 20px;
-      right: 20px;
-      top: 20px;
-      bottom: 20px;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      padding: 20px;
     }
     .m-signature-pad--body canvas {
       position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
+      left: 20px;
+      top: 20px;
+      right: 20px;
+      bottom: 20px;
+      width: calc(100% - 40px);
+      height: calc(100% - 40px);
       border-radius: 4px;
       box-shadow: 0 0 5px rgba(0, 0, 0, 0.02) inset;
     }
@@ -148,21 +152,32 @@ const AssinaturaComponent = ({
       <View style={styles.signatureArea}>
         {value ? (
           <View style={styles.signaturePreview}>
-            <Text style={styles.signatureText}>✓ Assinatura capturada</Text>
-            <TouchableOpacity
-              style={styles.changeButton}
-              onPress={() => setShowModal(true)}
-              disabled={disabled}
-            >
-              <Text style={styles.changeButtonText}>Alterar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={handleRemoveSignature}
-              disabled={disabled}
-            >
-              <Text style={styles.removeButtonText}>Remover</Text>
-            </TouchableOpacity>
+            <View style={styles.previewHeader}>
+              <Text style={styles.signatureText}>✓ Assinatura capturada</Text>
+              <View style={styles.buttonGroup}>
+                <TouchableOpacity
+                  style={styles.changeButton}
+                  onPress={() => setShowModal(true)}
+                  disabled={disabled}
+                >
+                  <Text style={styles.changeButtonText}>Alterar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={handleRemoveSignature}
+                  disabled={disabled}
+                >
+                  <Text style={styles.removeButtonText}>Remover</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.signatureImageContainer}>
+              <Image
+                source={{ uri: value }}
+                style={styles.signatureImage}
+                resizeMode="contain"
+              />
+            </View>
           </View>
         ) : (
           <TouchableOpacity
@@ -251,7 +266,7 @@ const AssinaturaComponent = ({
                   !hasDrawn && styles.confirmButtonTextDisabled,
                 ]}
               >
-                {hasDrawn ? "Confirmar Assinatura" : "Desenhe para Confirmar"}
+                {hasDrawn ? "Confirmar" : "Confirmar"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -266,7 +281,7 @@ const styles = StyleSheet.create({
     marginVertical: theme.spacing.sm,
   },
   signatureArea: {
-    minHeight: 80,
+    minHeight: 120,
     borderWidth: 2,
     borderColor: theme.colors.border,
     borderRadius: theme.borderRadius.md,
@@ -278,6 +293,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: theme.spacing.lg,
+    minHeight: 120,
   },
   signatureButtonText: {
     ...createTextStyle("body", "muted"),
@@ -285,16 +301,35 @@ const styles = StyleSheet.create({
   },
   signaturePreview: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
     padding: theme.spacing.md,
+  },
+  previewHeader: {
     flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: theme.spacing.md,
     flexWrap: "wrap",
+  },
+  buttonGroup: {
+    flexDirection: "row",
+    gap: theme.spacing.sm,
   },
   signatureText: {
     ...createTextStyle("body", "success"),
     fontWeight: "600",
-    marginRight: theme.spacing.md,
+    flex: 1,
+  },
+  signatureImageContainer: {
+    height: 60,
+    backgroundColor: "white",
+    borderRadius: theme.borderRadius.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.xs,
+  },
+  signatureImage: {
+    width: "100%",
+    height: "100%",
   },
   changeButton: {
     backgroundColor: theme.colors.primary,
@@ -351,10 +386,10 @@ const styles = StyleSheet.create({
   },
   placeholderContainer: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: 20,
+    left: 20,
+    right: 20,
+    bottom: 20,
     justifyContent: "center",
     alignItems: "center",
     pointerEvents: "none",
@@ -396,6 +431,7 @@ const styles = StyleSheet.create({
     ...createButtonStyle("default"),
     flex: 1,
     marginLeft: theme.spacing.sm,
+    backgroundColor: theme.colors.primary,
   },
   confirmButtonDisabled: {
     backgroundColor: theme.colors.muted,
@@ -405,6 +441,7 @@ const styles = StyleSheet.create({
     ...createTextStyle("body", "white"),
     textAlign: "center",
     fontWeight: "600",
+    color: "white",
   },
   confirmButtonTextDisabled: {
     color: theme.colors.mutedForeground,
