@@ -20,16 +20,26 @@ const AssinaturaComponent = ({
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [tempSignature, setTempSignature] = useState(null);
+  const [hasDrawn, setHasDrawn] = useState(false);
   const signatureRef = useRef();
 
   const handleSignature = (signature) => {
     setTempSignature(signature);
   };
 
+  const handleBegin = () => {
+    setHasDrawn(true);
+  };
+
+  const handleEmpty = () => {
+    setTempSignature(null);
+    setHasDrawn(false);
+  };
+
   const handleOK = () => {
-    if (tempSignature) {
-      onSignatureCapture(tempSignature);
-      setShowModal(false);
+    if (hasDrawn && signatureRef.current) {
+      // Trigger signature capture from the canvas
+      signatureRef.current.readSignature();
     } else {
       Alert.alert(
         "Atenção",
@@ -38,14 +48,32 @@ const AssinaturaComponent = ({
     }
   };
 
+  const handleConfirmSignature = () => {
+    if (tempSignature) {
+      onSignatureCapture(tempSignature);
+      setShowModal(false);
+      setTempSignature(null);
+      setHasDrawn(false);
+    }
+  };
+
+  // Automatically confirm when signature is captured
+  React.useEffect(() => {
+    if (tempSignature && hasDrawn) {
+      handleConfirmSignature();
+    }
+  }, [tempSignature]);
+
   const handleClear = () => {
     signatureRef.current?.clearSignature();
     setTempSignature(null);
+    setHasDrawn(false);
   };
 
   const handleCancel = () => {
     setShowModal(false);
     setTempSignature(null);
+    setHasDrawn(false);
   };
 
   const handleRemoveSignature = () => {
@@ -79,7 +107,7 @@ const AssinaturaComponent = ({
       left: 20px;
       right: 20px;
       top: 20px;
-      bottom: 60px;
+      bottom: 20px;
     }
     .m-signature-pad--body canvas {
       position: absolute;
@@ -91,17 +119,10 @@ const AssinaturaComponent = ({
       box-shadow: 0 0 5px rgba(0, 0, 0, 0.02) inset;
     }
     .m-signature-pad--footer {
-      position: absolute;
-      left: 20px;
-      right: 20px;
-      bottom: 20px;
-      height: 40px;
+      display: none !important;
     }
     .m-signature-pad--footer .description {
-      color: #C3C3C3;
-      text-align: center;
-      font-size: 12px;
-      margin-top: 1.8em;
+      display: none !important;
     }
     .signature-pad-text {
       position: absolute;
@@ -112,6 +133,13 @@ const AssinaturaComponent = ({
       font-size: 14px;
       pointer-events: none;
       z-index: 1;
+    }
+    /* Hide internal buttons */
+    .signature-pad-buttons {
+      display: none !important;
+    }
+    button {
+      display: none !important;
     }
   `;
 
@@ -167,15 +195,15 @@ const AssinaturaComponent = ({
             <SignatureCanvas
               ref={signatureRef}
               onOK={handleSignature}
-              onEmpty={() => setTempSignature(null)}
-              onClear={() => setTempSignature(null)}
+              onEmpty={handleEmpty}
+              onClear={handleEmpty}
               onGetData={() => {}}
-              onBegin={() => {}}
+              onBegin={handleBegin}
               onEnd={() => {}}
               autoClear={false}
               descriptionText=""
-              clearText="Limpar"
-              confirmText="Confirmar"
+              clearText=""
+              confirmText=""
               webStyle={webStyle}
               imageType="image/png"
               dataURL=""
@@ -188,6 +216,13 @@ const AssinaturaComponent = ({
                 height: 300,
               }}
             />
+            {!hasDrawn && (
+              <View style={styles.placeholderContainer}>
+                <Text style={styles.placeholderText}>
+                  ✍️ Desenhe sua assinatura aqui
+                </Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.modalActions}>
@@ -202,8 +237,22 @@ const AssinaturaComponent = ({
               <Text style={styles.cancelButtonText}>Cancelar</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.confirmButton} onPress={handleOK}>
-              <Text style={styles.confirmButtonText}>Confirmar</Text>
+            <TouchableOpacity
+              style={[
+                styles.confirmButton,
+                !hasDrawn && styles.confirmButtonDisabled,
+              ]}
+              onPress={handleOK}
+              disabled={!hasDrawn}
+            >
+              <Text
+                style={[
+                  styles.confirmButtonText,
+                  !hasDrawn && styles.confirmButtonTextDisabled,
+                ]}
+              >
+                {hasDrawn ? "Confirmar Assinatura" : "Desenhe para Confirmar"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -298,6 +347,23 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    position: "relative",
+  },
+  placeholderContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    pointerEvents: "none",
+    zIndex: 1,
+  },
+  placeholderText: {
+    ...createTextStyle("body", "muted"),
+    fontSize: 16,
+    opacity: 0.6,
   },
   modalActions: {
     flexDirection: "row",
@@ -331,10 +397,17 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: theme.spacing.sm,
   },
+  confirmButtonDisabled: {
+    backgroundColor: theme.colors.muted,
+    opacity: 0.6,
+  },
   confirmButtonText: {
     ...createTextStyle("body", "white"),
     textAlign: "center",
     fontWeight: "600",
+  },
+  confirmButtonTextDisabled: {
+    color: theme.colors.mutedForeground,
   },
 });
 
