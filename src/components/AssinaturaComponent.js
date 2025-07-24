@@ -10,7 +10,9 @@ import {
   Image,
 } from "react-native";
 import SignatureCanvas from "react-native-signature-canvas";
+import { MaterialIcons, Feather } from "@expo/vector-icons";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -96,12 +98,14 @@ const AssinaturaComponent = ({
     .m-signature-pad {
       position: relative;
       font-size: 10px;
-      width: 100%;
-      height: 100%;
+      width: 320px;
+      height: 200px;
+      margin: 0 auto;
       border: 1px solid #e8e8e8;
       background-color: white;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.27), 0 0 40px rgba(0, 0, 0, 0.08) inset;
       border-radius: 4px;
+      display: block;
     }
     .m-signature-pad--body {
       position: absolute;
@@ -109,16 +113,16 @@ const AssinaturaComponent = ({
       right: 0;
       top: 0;
       bottom: 0;
-      padding: 20px;
+      padding: 15px;
     }
     .m-signature-pad--body canvas {
       position: absolute;
-      left: 20px;
-      top: 20px;
-      right: 20px;
-      bottom: 20px;
-      width: calc(100% - 40px);
-      height: calc(100% - 40px);
+      left: 15px;
+      top: 15px;
+      right: 15px;
+      bottom: 15px;
+      width: calc(100% - 30px);
+      height: calc(100% - 30px);
       border-radius: 4px;
       box-shadow: 0 0 5px rgba(0, 0, 0, 0.02) inset;
     }
@@ -148,7 +152,7 @@ const AssinaturaComponent = ({
   `;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.signatureArea}>
         {value ? (
           <View style={styles.signaturePreview}>
@@ -185,100 +189,101 @@ const AssinaturaComponent = ({
             onPress={() => setShowModal(true)}
             disabled={disabled}
           >
-            <Text style={styles.signatureButtonText}>
-              📝 Toque para assinar
-            </Text>
+            <Text style={styles.signatureButtonText}>Toque para assinar</Text>
           </TouchableOpacity>
         )}
       </View>
 
       <Modal
         visible={showModal}
-        animationType="slide"
-        presentationStyle="fullScreen"
+        animationType="fade"
+        transparent={true}
         onRequestClose={handleCancel}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Área de Assinatura</Text>
-            <Text style={styles.modalSubtitle}>
-              Faça sua assinatura na área abaixo
-            </Text>
-          </View>
-
-          <View style={styles.signatureContainer}>
-            <SignatureCanvas
-              ref={signatureRef}
-              onOK={handleSignature}
-              onEmpty={handleEmpty}
-              onClear={handleEmpty}
-              onGetData={() => {}}
-              onBegin={handleBegin}
-              onEnd={() => {}}
-              autoClear={false}
-              descriptionText=""
-              clearText=""
-              confirmText=""
-              webStyle={webStyle}
-              imageType="image/png"
-              dataURL=""
-              penColor="black"
-              backgroundColor="white"
-              dotSize={2}
-              minWidth={1}
-              canvasProps={{
-                width: screenWidth - 40,
-                height: 300,
-              }}
-            />
-            {!hasDrawn && (
-              <View style={styles.placeholderContainer}>
-                <Text style={styles.placeholderText}>
-                  ✍️ Desenhe sua assinatura aqui
-                </Text>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.modalActions}>
-            <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
-              <Text style={styles.clearButtonText}>Limpar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={handleCancel}
-            >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.confirmButton,
-                !hasDrawn && styles.confirmButtonDisabled,
-              ]}
-              onPress={handleOK}
-              disabled={!hasDrawn}
-            >
-              <Text
-                style={[
-                  styles.confirmButtonText,
-                  !hasDrawn && styles.confirmButtonTextDisabled,
-                ]}
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={handleCancel}
               >
-                {hasDrawn ? "Confirmar" : "Confirmar"}
+                <MaterialIcons name="close" size={24} color="white" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Área de Assinatura</Text>
+              <Text style={styles.modalSubtitle}>
+                Faça sua assinatura na área abaixo
               </Text>
-            </TouchableOpacity>
+            </View>
+
+            <View style={styles.signatureContainer}>
+              <SignatureCanvas
+                ref={signatureRef}
+                onOK={handleSignature}
+                onEmpty={handleEmpty}
+                onClear={handleEmpty}
+                onGetData={() => {}}
+                onBegin={handleBegin}
+                onEnd={() => {}}
+                autoClear={false}
+                descriptionText=""
+                clearText=""
+                confirmText=""
+                webStyle={webStyle}
+                imageType="image/png"
+                dataURL=""
+                penColor="black"
+                backgroundColor="white"
+                dotSize={2}
+                minWidth={1}
+                canvasProps={{
+                  width: 320,
+                  height: 200,
+                }}
+              />
+              {!hasDrawn && (
+                <View style={styles.placeholderContainer}>
+                  <Feather name="edit-3" size={28} color="#ccc" />
+                  <Text style={styles.placeholderText}>
+                    Desenhe sua assinatura aqui
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={handleClear}
+              >
+                <MaterialIcons name="delete-outline" size={24} color="white" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.confirmButton,
+                  !hasDrawn && styles.confirmButtonDisabled,
+                ]}
+                onPress={handleOK}
+                disabled={!hasDrawn}
+              >
+                <MaterialIcons
+                  name="check"
+                  size={24}
+                  color={!hasDrawn ? "#9ca3af" : "white"}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     marginVertical: theme.spacing.sm,
+    flex: 1,
   },
   signatureArea: {
     minHeight: 120,
@@ -302,6 +307,7 @@ const styles = StyleSheet.create({
   signaturePreview: {
     flex: 1,
     padding: theme.spacing.md,
+    height: 300,
   },
   previewHeader: {
     flexDirection: "row",
@@ -320,7 +326,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   signatureImageContainer: {
-    height: 60,
+    height: 210,
     backgroundColor: "white",
     borderRadius: theme.borderRadius.sm,
     borderWidth: 1,
@@ -354,15 +360,48 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalContent: {
     backgroundColor: theme.colors.background,
+    borderRadius: theme.borderRadius.lg,
+    maxWidth: 400,
+    width: "100%",
+    height: 400,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   modalHeader: {
     backgroundColor: theme.colors.primary,
-    paddingTop: 60,
+    borderTopLeftRadius: theme.borderRadius.lg,
+    borderTopRightRadius: theme.borderRadius.lg,
+    paddingTop: 20,
     paddingBottom: 20,
     paddingHorizontal: 20,
+    position: "relative",
+  },
+  closeButton: {
+    position: "absolute",
+    top: 15,
+    right: 15,
+    zIndex: 10,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalTitle: {
     ...createTextStyle("h2", "white"),
@@ -373,26 +412,22 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   signatureContainer: {
-    flex: 1,
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: theme.borderRadius.md,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    padding: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "transparent",
     position: "relative",
+    height: 260,
+    overflow: "hidden",
   },
   placeholderContainer: {
     position: "absolute",
-    top: 20,
-    left: 20,
-    right: 20,
-    bottom: 20,
+    width: 320,
+    height: 200,
     justifyContent: "center",
     alignItems: "center",
     pointerEvents: "none",
+
     zIndex: 1,
   },
   placeholderText: {
@@ -404,47 +439,31 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingBottom: 20,
     backgroundColor: theme.colors.card,
+    borderBottomLeftRadius: theme.borderRadius.lg,
+    borderBottomRightRadius: theme.borderRadius.lg,
+    gap: theme.spacing.md,
   },
   clearButton: {
     ...createButtonStyle("secondary"),
     flex: 1,
-    marginRight: theme.spacing.sm,
-  },
-  clearButtonText: {
-    ...createTextStyle("body", "foreground"),
-    textAlign: "center",
-    fontWeight: "600",
-  },
-  cancelButton: {
-    ...createButtonStyle("ghost"),
-    flex: 1,
-    marginHorizontal: theme.spacing.sm,
-  },
-  cancelButtonText: {
-    ...createTextStyle("body", "foreground"),
-    textAlign: "center",
-    fontWeight: "600",
+    backgroundColor: "#6b7280",
+    justifyContent: "center",
+    alignItems: "center",
   },
   confirmButton: {
-    ...createButtonStyle("default"),
+    backgroundColor: "#16a34a",
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.borderRadius.md,
     flex: 1,
-    marginLeft: theme.spacing.sm,
-    backgroundColor: theme.colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
   },
   confirmButtonDisabled: {
     backgroundColor: theme.colors.muted,
     opacity: 0.6,
-  },
-  confirmButtonText: {
-    ...createTextStyle("body", "white"),
-    textAlign: "center",
-    fontWeight: "600",
-    color: "white",
-  },
-  confirmButtonTextDisabled: {
-    color: theme.colors.mutedForeground,
   },
 });
 
