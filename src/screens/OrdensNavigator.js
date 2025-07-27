@@ -3,7 +3,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import OrdensFeitas from "./OrdensFeitas";
 import OrdensAFazer from "./OrdensAFazer";
 import PerfilScreen from "./PerfilScreen";
-import { View, Text, StyleSheet, Platform } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import {
   useSafeAreaInsets,
   SafeAreaView,
@@ -11,28 +12,31 @@ import {
 
 const Tab = createBottomTabNavigator();
 
-// Ícones simples usando texto
+// Ícones usando @expo/vector-icons
 const TabIcon = ({ name, focused }) => {
-  const getIconText = () => {
+  const getIcon = () => {
+    const color = focused ? "#2196F3" : "#666";
+    const size = 24;
+
     switch (name) {
       case "feitas":
-        return "✓";
+        return <MaterialIcons name="check-circle" size={size} color={color} />;
       case "afazer":
-        return "○";
+        return (
+          <MaterialIcons
+            name="radio-button-unchecked"
+            size={size}
+            color={color}
+          />
+        );
       case "config":
-        return "👤";
+        return <Ionicons name="person" size={size} color={color} />;
       default:
-        return "?";
+        return <MaterialIcons name="help" size={size} color={color} />;
     }
   };
 
-  return (
-    <View style={styles.tabIcon}>
-      <Text style={[styles.iconText, { color: focused ? "#2196F3" : "#666" }]}>
-        {getIconText()}
-      </Text>
-    </View>
-  );
+  return <View style={styles.tabIcon}>{getIcon()}</View>;
 };
 
 const OrdensNavigator = () => {
@@ -105,10 +109,6 @@ const styles = StyleSheet.create({
   tabIcon: {
     alignItems: "center",
     justifyContent: "center",
-  },
-  iconText: {
-    fontSize: 20,
-    fontWeight: "bold",
   },
 });
 
