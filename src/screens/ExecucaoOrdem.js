@@ -129,12 +129,8 @@ const ExecucaoOrdem = ({ route, navigation }) => {
   };
 
   const handleAssinatura = (perguntaId, assinaturaBase64) => {
-    if (!modoEdicao) return;
-
-    setRespostasEditaveis((prev) => ({
-      ...prev,
-      [perguntaId]: assinaturaBase64,
-    }));
+    // Assinaturas NUNCA podem ser editadas - função desabilitada
+    return;
   };
 
   const handleToggleEdicao = () => {
@@ -169,8 +165,13 @@ const ExecucaoOrdem = ({ route, navigation }) => {
   };
 
   const handleSalvarEdicao = () => {
-    // Validar se todas as perguntas foram respondidas
+    // Validar se todas as perguntas foram respondidas (exceto assinaturas)
     const perguntasNaoRespondidas = formulario.perguntas.filter((pergunta) => {
+      // Pular validação para assinaturas - elas nunca podem ser editadas
+      if (pergunta.pergunta_type_id === "ASSINATURA") {
+        return false;
+      }
+
       const resposta = respostasEditaveis[pergunta.formulario_pergunta_id];
       if (pergunta.pergunta_type_id === "TEXTO") {
         return !resposta || resposta.trim() === "";
@@ -178,8 +179,6 @@ const ExecucaoOrdem = ({ route, navigation }) => {
         return !resposta || resposta.length === 0;
       } else if (pergunta.pergunta_type_id === "UNICA") {
         return resposta === null || resposta === undefined;
-      } else if (pergunta.pergunta_type_id === "ASSINATURA") {
-        return !resposta;
       }
       return false;
     });
@@ -372,7 +371,7 @@ const ExecucaoOrdem = ({ route, navigation }) => {
               handleAssinatura(pergunta.formulario_pergunta_id, assinatura)
             }
             value={resposta}
-            disabled={isDisabled}
+            disabled={true} // SEMPRE desabilitado para assinaturas
           />
         </View>
       );
