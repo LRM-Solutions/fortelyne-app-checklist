@@ -13,7 +13,11 @@ import {
   Platform,
 } from "react-native";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
-import { getRespostasFinaisOrdem, getFormularioOrdem } from "../api/ordemApi";
+import {
+  getRespostasFinaisOrdem,
+  getFormularioOrdem,
+  editarFormularioOrdem,
+} from "../api/ordemApi";
 import { MaterialIcons } from "@expo/vector-icons";
 import AssinaturaComponent from "../components/AssinaturaComponent";
 
@@ -165,21 +169,68 @@ const ExecucaoOrdem = ({ route, navigation }) => {
   };
 
   const handleSalvarEdicao = () => {
+    // Validar se todas as perguntas foram respondidas
+    const perguntasNaoRespondidas = formulario.perguntas.filter((pergunta) => {
+      const resposta = respostasEditaveis[pergunta.formulario_pergunta_id];
+      if (pergunta.pergunta_type_id === "TEXTO") {
+        return !resposta || resposta.trim() === "";
+      } else if (pergunta.pergunta_type_id === "MULTIPLA") {
+        return !resposta || resposta.length === 0;
+      } else if (pergunta.pergunta_type_id === "UNICA") {
+        return resposta === null || resposta === undefined;
+      } else if (pergunta.pergunta_type_id === "ASSINATURA") {
+        return !resposta;
+      }
+      return false;
+    });
+
+    if (perguntasNaoRespondidas.length > 0) {
+      Alert.alert(
+        "Formulário Incompleto",
+        "Por favor, responda todas as perguntas antes de salvar."
+      );
+      return;
+    }
+
     Alert.alert(
       "Salvar Alterações",
-      "Funcionalidade de salvamento em desenvolvimento.\nAs alterações serão enviadas para a API.",
+      "Deseja realmente salvar as alterações feitas no formulário?",
       [
         { text: "Cancelar", style: "cancel" },
         {
           text: "Salvar",
           onPress: async () => {
             setSalvando(true);
-            // Aqui implementar o salvamento via API
-            setTimeout(() => {
+            try {
+              const resultado = await editarFormularioOrdem(
+                ordem.ordem_id,
+                respostasEditaveis,
+                formulario
+              );
+
+              if (resultado.success) {
+                setModoEdicao(false);
+                Alert.alert("Sucesso", "Alterações salvas com sucesso!", [
+                  {
+                    text: "OK",
+                    onPress: () => {
+                      // Recarregar dados para mostrar as mudanças
+                      carregarDados();
+                    },
+                  },
+                ]);
+              } else {
+                Alert.alert(
+                  "Erro",
+                  resultado.error || "Erro ao salvar alterações"
+                );
+              }
+            } catch (error) {
+              console.error("Erro ao salvar edição:", error);
+              Alert.alert("Erro", "Erro inesperado ao salvar alterações");
+            } finally {
               setSalvando(false);
-              setModoEdicao(false);
-              Alert.alert("Sucesso", "Alterações salvas com sucesso!");
-            }, 2000);
+            }
           },
         },
       ]

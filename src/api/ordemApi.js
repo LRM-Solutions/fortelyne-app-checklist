@@ -236,3 +236,104 @@ export const getRespostasFinaisOrdem = async (ordemId) => {
     return null;
   }
 };
+
+// Função para editar formulário já enviado
+export const editarFormularioOrdem = async (ordemId, respostas, formulario) => {
+  try {
+    const token = await getAuthToken();
+
+    if (!token) {
+      Alert.alert("Erro", "Token de autenticação não encontrado");
+      return { success: false, error: "Token de autenticação não encontrado" };
+    }
+
+    // Transformar respostas para o formato esperado pela API
+    const respostasFormatadas = [];
+
+    Object.keys(respostas).forEach((perguntaId) => {
+      const resposta = respostas[perguntaId];
+      const pergunta = formulario.perguntas.find(
+        (p) => p.formulario_pergunta_id.toString() === perguntaId.toString()
+      );
+
+      if (!pergunta) return;
+
+      if (pergunta.pergunta_type_id === "TEXTO") {
+        // Para perguntas de texto
+        respostasFormatadas.push({
+          formulario_pergunta_id: parseInt(perguntaId),
+          tipo_pergunta: "TEXTO",
+          resposta_escolha_id: null,
+          resposta_texto: resposta,
+          assinatura_base64: null,
+        });
+      } else if (pergunta.pergunta_type_id === "MULTIPLA") {
+        // Para perguntas de múltipla escolha
+        (resposta || []).forEach((escolhaId) => {
+          respostasFormatadas.push({
+            formulario_pergunta_id: parseInt(perguntaId),
+            tipo_pergunta: "MULTIPLA",
+            resposta_escolha_id: escolhaId,
+            resposta_texto: null,
+            assinatura_base64: null,
+          });
+        });
+      } else if (pergunta.pergunta_type_id === "UNICA") {
+        // Para perguntas de escolha única
+        if (resposta) {
+          respostasFormatadas.push({
+            formulario_pergunta_id: parseInt(perguntaId),
+            tipo_pergunta: "UNICA",
+            resposta_escolha_id: resposta,
+            resposta_texto: null,
+            assinatura_base64: null,
+          });
+        }
+      } else if (pergunta.pergunta_type_id === "ASSINATURA") {
+        // Para perguntas de assinatura
+        if (resposta) {
+          respostasFormatadas.push({
+            formulario_pergunta_id: parseInt(perguntaId),
+            tipo_pergunta: "ASSINATURA",
+            resposta_escolha_id: null,
+            resposta_texto: null,
+            assinatura_base64: resposta,
+          });
+        }
+      }
+    });
+
+    console.log("Payload para edição:", {
+      ordem_id: ordemId,
+      respostas: respostasFormatadas,
+    });
+
+    const response = await api.put(
+      "/editar-envio-formulario",
+      {
+        ordem_id: ordemId,
+        respostas: respostasFormatadas,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log("Resposta da edição:", response.data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Erro ao editar formulário:", error);
+
+    let errorMessage = "Erro ao editar formulário";
+
+    if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return { success: false, error: errorMessage };
+  }
+};
