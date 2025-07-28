@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   statusContainer: {
-    backgroundColor: theme.colors.success,
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.xs,
     borderRadius: theme.borderRadius.lg,
