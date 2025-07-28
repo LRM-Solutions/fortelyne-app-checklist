@@ -200,3 +200,39 @@ export const enviarFormularioOrdem = async (ordemId, respostas, formulario) => {
     return { success: false, error: errorMessage };
   }
 };
+
+// Função para buscar respostas finais de uma ordem
+export const getRespostasFinaisOrdem = async (ordemId) => {
+  try {
+    const token = await getAuthToken();
+
+    if (!token) {
+      Alert.alert("Erro", "Token de autenticação não encontrado");
+      return null;
+    }
+
+    console.log(`Fazendo requisição para: /respostas-finais-ordem/${ordemId}`);
+
+    const response = await api.get(`/respostas-finais-ordem/${ordemId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("Resposta da API (respostas finais):", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao buscar respostas finais da ordem:", error);
+
+    let errorMessage = "Erro ao buscar respostas da ordem";
+
+    if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    Alert.alert("Erro", errorMessage);
+    return null;
+  }
+};

@@ -158,22 +158,22 @@ const AssinaturaComponent = ({
           <View style={styles.signaturePreview}>
             <View style={styles.previewHeader}>
               <Text style={styles.signatureText}>✓ Assinatura capturada</Text>
-              <View style={styles.buttonGroup}>
-                <TouchableOpacity
-                  style={styles.changeButton}
-                  onPress={() => setShowModal(true)}
-                  disabled={disabled}
-                >
-                  <Text style={styles.changeButtonText}>Alterar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={handleRemoveSignature}
-                  disabled={disabled}
-                >
-                  <Text style={styles.removeButtonText}>Remover</Text>
-                </TouchableOpacity>
-              </View>
+              {!disabled && (
+                <View style={styles.buttonGroup}>
+                  <TouchableOpacity
+                    style={styles.changeButton}
+                    onPress={() => setShowModal(true)}
+                  >
+                    <Text style={styles.changeButtonText}>Alterar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={handleRemoveSignature}
+                  >
+                    <Text style={styles.removeButtonText}>Remover</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
             <View style={styles.signatureImageContainer}>
               <Image

@@ -13,7 +13,7 @@ import { theme, createTextStyle } from "../utils/theme";
 import { getOrdensConcluidas } from "../api/ordemApi";
 import { useFocusEffect } from "@react-navigation/native";
 
-const OrdensFeitas = () => {
+const OrdensFeitas = ({ navigation }) => {
   const [ordensFeitas, setOrdensFeitas] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +41,10 @@ const OrdensFeitas = () => {
     return data.toLocaleDateString("pt-BR");
   };
   const renderOrdemCard = ({ item }) => (
-    <TouchableOpacity style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate("ExecucaoOrdem", { ordem: item })}
+    >
       <View style={styles.cardHeader}>
         <Text style={styles.orderId}>#{item.ordem_id}</Text>
         <View style={styles.statusContainer}>

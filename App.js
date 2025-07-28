@@ -9,6 +9,7 @@ import LoadingScreen from "./src/components/LoadingScreen";
 import OrdensNavigator from "./src/screens/OrdensNavigator";
 import FormularioOrdem from "./src/screens/FormularioOrdem";
 import FormularioSucesso from "./src/screens/FormularioSucesso";
+import ExecucaoOrdem from "./src/screens/ExecucaoOrdem";
 
 const Stack = createStackNavigator();
 
@@ -47,6 +48,15 @@ function AppContent() {
           options={{
             headerShown: false,
             gestureEnabled: false,
+          }}
+        />
+        <Stack.Screen
+          name="ExecucaoOrdem"
+          component={ExecucaoOrdem}
+          options={{
+            headerShown: true,
+            title: "Execução da Ordem",
+            headerBackTitle: "Voltar",
           }}
         />
       </Stack.Navigator>
