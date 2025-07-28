@@ -427,12 +427,12 @@ const ExecucaoOrdem = ({ route, navigation }) => {
                     <MaterialIcons
                       name="check-circle"
                       size={20}
-                      color={theme.colors.success}
+                      color={theme.colors.primary}
                     />
                     <Text
                       style={[
                         styles.infoValue,
-                        { color: theme.colors.success, marginLeft: 8 },
+                        { color: theme.colors.primary, marginLeft: 8 },
                       ]}
                     >
                       Ordem Concluída
@@ -749,7 +749,7 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.md,
   },
   saveButton: {
-    ...createButtonStyle("success", "lg"),
+    ...createButtonStyle("primary", "lg"),
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",

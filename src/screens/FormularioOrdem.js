@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.md,
   },
   submitButton: {
-    ...createButtonStyle("success", "lg"),
+    ...createButtonStyle("primary", "lg"),
     marginBottom: theme.spacing.md,
   },
   submitButtonText: {

@@ -5,9 +5,9 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Image,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
 
 const FormularioSucesso = ({ route, navigation }) => {
@@ -88,8 +88,15 @@ const FormularioSucesso = ({ route, navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={["top", "left", "right", "bottom"]}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Formulário Enviado!</Text>
           <Text style={styles.subtitle}>
@@ -182,8 +189,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  scrollContentContainer: {
+    flexGrow: 1,
+    paddingBottom: 20, // Espaço adicional para evitar sobreposição
+  },
   header: {
-    backgroundColor: theme.colors.success,
+    backgroundColor: theme.colors.primary,
     paddingTop: 60,
     paddingBottom: 30,
     paddingHorizontal: 20,
@@ -232,7 +243,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statusConcluido: {
-    color: theme.colors.success,
+    color: theme.colors.primary,
     fontWeight: "600",
   },
   resumoSection: {
@@ -271,6 +282,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl, // Mais espaço na parte inferior
   },
   voltarButton: {
     ...createButtonStyle("primary", "lg"),
