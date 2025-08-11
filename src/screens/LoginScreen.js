@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Image,
 } from "react-native";
 import { login } from "../api/authApi";
 import { useAuth } from "../components/AuthProvider";
@@ -76,7 +77,12 @@ export default function LoginScreen() {
         <View style={styles.content}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Bem-vindo</Text>
+            <Image
+              source={require("../assets/images/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+
             <Text style={styles.subtitle}>Faça login para continuar</Text>
           </View>
 
@@ -168,6 +174,12 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: theme.spacing.xl,
+  },
+  logo: {
+    width: 200,
+    height: 120,
+    alignSelf: "center",
+    marginBottom: theme.spacing.sm,
   },
   title: {
     ...createTextStyle("h1", "foreground"),
