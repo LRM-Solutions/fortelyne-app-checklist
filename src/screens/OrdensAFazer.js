@@ -7,14 +7,20 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
-import { getOrdensAFazer } from "../api/ordemApi";
+import {
+  getOrdensAFazer,
+  verificarLocalizacaoFuncionario,
+} from "../api/ordemApi";
 import { useFocusEffect } from "@react-navigation/native";
+import * as Location from "expo-location";
 
 const OrdensAFazer = ({ navigation }) => {
   const [ordensAFazer, setOrdensAFazer] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [verificandoLocalizacao, setVerificandoLocalizacao] = useState(false);
 
   const carregarOrdens = async () => {
     setLoading(true);
@@ -50,16 +56,81 @@ const OrdensAFazer = ({ navigation }) => {
     }
   };
 
-  const handleCardPress = (ordem) => {
-    // Navegar para tela de formulário (a ser criada)
-    navigation.navigate("FormularioOrdem", { ordem });
+  const obterLocalizacaoAtual = async () => {
+    try {
+      // Verificar permissão
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permissão Negada",
+          "É necessário permitir o acesso à localização para verificar se você está no local da ordem."
+        );
+        return null;
+      }
+
+      // Obter localização atual
+      let location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      return {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      };
+    } catch (error) {
+      console.error("Erro ao obter localização:", error);
+      Alert.alert(
+        "Erro de Localização",
+        "Não foi possível obter sua localização atual. Verifique se o GPS está ativado."
+      );
+      return null;
+    }
+  };
+
+  const handleCardPress = async (ordem) => {
+    setVerificandoLocalizacao(true);
+
+    try {
+      // Obter localização atual do funcionário
+      const localizacao = await obterLocalizacaoAtual();
+
+      if (!localizacao) {
+        setVerificandoLocalizacao(false);
+        return;
+      }
+
+      // Verificar se o funcionário está no range da ordem
+      const dentroDaArea = await verificarLocalizacaoFuncionario(
+        ordem.ordem_id,
+        localizacao.latitude,
+        localizacao.longitude
+      );
+
+      if (dentroDaArea) {
+        // Funcionário está no range, navegar para o formulário
+        navigation.navigate("FormularioOrdem", { ordem });
+      } else {
+        // Funcionário não está no range
+        Alert.alert(
+          "Localização Incorreta",
+          "Você não está na localização da ordem de serviço. Aproxime-se do local indicado para continuar.",
+          [{ text: "OK" }]
+        );
+      }
+    } catch (error) {
+      console.error("Erro na verificação de localização:", error);
+      Alert.alert("Erro", "Erro ao verificar localização. Tente novamente.");
+    } finally {
+      setVerificandoLocalizacao(false);
+    }
   };
 
   const renderOrdemCard = ({ item }) => (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, verificandoLocalizacao && styles.cardDisabled]}
       onPress={() => handleCardPress(item)}
       activeOpacity={0.7}
+      disabled={verificandoLocalizacao}
     >
       <View style={styles.cardHeader}>
         <Text style={styles.orderId}>#{item.ordem_id}</Text>
@@ -85,7 +156,14 @@ const OrdensAFazer = ({ navigation }) => {
 
       <View style={styles.cardFooter}>
         <Text style={styles.data}>Data: {formatarData(item.ordem_data)}</Text>
-        <Text style={styles.tapHint}>Toque para abrir</Text>
+        {verificandoLocalizacao ? (
+          <View style={styles.loadingLocationContainer}>
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <Text style={styles.loadingLocationText}>Verificando...</Text>
+          </View>
+        ) : (
+          <Text style={styles.tapHint}>Toque para abrir</Text>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -160,6 +238,9 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
     ...theme.shadows.md,
   },
+  cardDisabled: {
+    opacity: 0.7,
+  },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -216,6 +297,14 @@ const styles = StyleSheet.create({
   tapHint: {
     ...createTextStyle("small", "primary"),
     fontWeight: "600",
+  },
+  loadingLocationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  loadingLocationText: {
+    ...createTextStyle("small", "primary"),
+    marginLeft: theme.spacing.xs,
   },
   loadingContainer: {
     flex: 1,

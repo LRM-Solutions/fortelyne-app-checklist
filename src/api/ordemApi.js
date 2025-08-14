@@ -35,6 +35,57 @@ export const getOrdensConcluidas = async () => {
   }
 };
 
+// Função para verificar localização do funcionário
+export const verificarLocalizacaoFuncionario = async (
+  ordemId,
+  funcionarioLat,
+  funcionarioLng
+) => {
+  try {
+    const token = await getAuthToken();
+
+    if (!token) {
+      Alert.alert("Erro", "Token de autenticação não encontrado");
+      return false;
+    }
+
+    console.log(`Verificando localização para ordem ${ordemId}:`, {
+      funcionario_lat: funcionarioLat,
+      funcionario_lng: funcionarioLng,
+    });
+
+    const response = await api.post(
+      "/verificar-loc-funcionario",
+      {
+        ordem_id: ordemId,
+        funcionario_lat: funcionarioLat,
+        funcionario_lng: funcionarioLng,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log("Resposta da verificação de localização:", response.data);
+    return response.data; // Retorna o booleano
+  } catch (error) {
+    console.error("Erro ao verificar localização:", error);
+
+    let errorMessage = "Erro ao verificar localização";
+
+    if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    Alert.alert("Erro", errorMessage);
+    return false;
+  }
+};
+
 // Função para buscar ordens a fazer
 export const getOrdensAFazer = async () => {
   try {
