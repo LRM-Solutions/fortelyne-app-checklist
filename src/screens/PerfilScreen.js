@@ -73,7 +73,6 @@ const PerfilScreen = () => {
           try {
             await logout();
             authLogout();
-            Alert.alert("Sucesso", "Logout realizado com sucesso!");
           } catch (error) {
             Alert.alert("Erro", "Erro ao fazer logout");
           }
