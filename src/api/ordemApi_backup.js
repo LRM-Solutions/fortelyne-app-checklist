@@ -1,6 +1,45 @@
 import api from "./apiConfig";
+import { Alert } from "react-native";
 import { getAuthToken } from "./authApi";
-import Toast from "react-native-toast-message";
+import Toast from 'react-native-toast-message';
+
+// Função para buscar ordens concluídas
+export const getOrdensConcluidas = async () => {
+  try {
+    const token = await getAuthToken();
+
+    if (!token) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erro de Autenticação',
+        text2: 'Token de autenticação não encontrado',
+        visibilityTime: 4000,
+      });
+      return [];
+    }
+
+    const response = await api.get("/get-all-done-orders-by-user-id", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data || [];
+  } catch (error) {
+    console.error("Erro ao buscar ordens concluídas:", error);
+
+    let errorMessage = "Erro ao buscar ordens concluídas";
+
+    if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    Alert.alert("Erro", errorMessage);
+    return [];
+  }
+};
 
 // Função para verificar localização do funcionário
 export const verificarLocalizacaoFuncionario = async (
@@ -13,9 +52,9 @@ export const verificarLocalizacaoFuncionario = async (
 
     if (!token) {
       Toast.show({
-        type: "error",
-        text1: "Erro de Autenticação",
-        text2: "Token de autenticação não encontrado",
+        type: 'error',
+        text1: 'Erro de Autenticação',
+        text2: 'Token de autenticação não encontrado',
         visibilityTime: 4000,
       });
       return false;
@@ -54,55 +93,12 @@ export const verificarLocalizacaoFuncionario = async (
     }
 
     Toast.show({
-      type: "error",
-      text1: "Erro de Localização",
+      type: 'error',
+      text1: 'Erro de Localização',
       text2: errorMessage,
       visibilityTime: 4000,
     });
     return false;
-  }
-};
-
-// Função para buscar ordens concluídas
-export const getOrdensConcluidas = async () => {
-  try {
-    const token = await getAuthToken();
-
-    if (!token) {
-      Toast.show({
-        type: "error",
-        text1: "Erro de Autenticação",
-        text2: "Token de autenticação não encontrado",
-        visibilityTime: 4000,
-      });
-      return [];
-    }
-
-    const response = await api.get("/get-all-done-orders-by-user-id", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return response.data || [];
-  } catch (error) {
-    console.error("Erro ao buscar ordens concluídas:", error);
-
-    let errorMessage = "Erro ao buscar ordens concluídas";
-
-    if (error.response?.data?.error) {
-      errorMessage = error.response.data.error;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-
-    Toast.show({
-      type: "error",
-      text1: "Erro",
-      text2: errorMessage,
-      visibilityTime: 4000,
-    });
-    return [];
   }
 };
 
@@ -112,12 +108,7 @@ export const getOrdensAFazer = async () => {
     const token = await getAuthToken();
 
     if (!token) {
-      Toast.show({
-        type: "error",
-        text1: "Erro de Autenticação",
-        text2: "Token de autenticação não encontrado",
-        visibilityTime: 4000,
-      });
+      Alert.alert("Erro", "Token de autenticação não encontrado");
       return [];
     }
 
@@ -139,12 +130,7 @@ export const getOrdensAFazer = async () => {
       errorMessage = error.message;
     }
 
-    Toast.show({
-      type: "error",
-      text1: "Erro",
-      text2: errorMessage,
-      visibilityTime: 4000,
-    });
+    Alert.alert("Erro", errorMessage);
     return [];
   }
 };
@@ -155,12 +141,7 @@ export const getFormularioOrdem = async (ordemId) => {
     const token = await getAuthToken();
 
     if (!token) {
-      Toast.show({
-        type: "error",
-        text1: "Erro de Autenticação",
-        text2: "Token de autenticação não encontrado",
-        visibilityTime: 4000,
-      });
+      Alert.alert("Erro", "Token de autenticação não encontrado");
       return null;
     }
 
@@ -185,12 +166,7 @@ export const getFormularioOrdem = async (ordemId) => {
       errorMessage = error.message;
     }
 
-    Toast.show({
-      type: "error",
-      text1: "Erro",
-      text2: errorMessage,
-      visibilityTime: 4000,
-    });
+    Alert.alert("Erro", errorMessage);
     return null;
   }
 };
@@ -201,12 +177,7 @@ export const enviarFormularioOrdem = async (ordemId, respostas, formulario) => {
     const token = await getAuthToken();
 
     if (!token) {
-      Toast.show({
-        type: "error",
-        text1: "Erro de Autenticação",
-        text2: "Token de autenticação não encontrado",
-        visibilityTime: 4000,
-      });
+      Alert.alert("Erro", "Token de autenticação não encontrado");
       return { success: false, error: "Token de autenticação não encontrado" };
     }
 
@@ -303,12 +274,7 @@ export const getRespostasFinaisOrdem = async (ordemId) => {
     const token = await getAuthToken();
 
     if (!token) {
-      Toast.show({
-        type: "error",
-        text1: "Erro de Autenticação",
-        text2: "Token de autenticação não encontrado",
-        visibilityTime: 4000,
-      });
+      Alert.alert("Erro", "Token de autenticação não encontrado");
       return null;
     }
 
@@ -333,12 +299,7 @@ export const getRespostasFinaisOrdem = async (ordemId) => {
       errorMessage = error.message;
     }
 
-    Toast.show({
-      type: "error",
-      text1: "Erro",
-      text2: errorMessage,
-      visibilityTime: 4000,
-    });
+    Alert.alert("Erro", errorMessage);
     return null;
   }
 };
@@ -349,12 +310,7 @@ export const editarFormularioOrdem = async (ordemId, respostas, formulario) => {
     const token = await getAuthToken();
 
     if (!token) {
-      Toast.show({
-        type: "error",
-        text1: "Erro de Autenticação",
-        text2: "Token de autenticação não encontrado",
-        visibilityTime: 4000,
-      });
+      Alert.alert("Erro", "Token de autenticação não encontrado");
       return { success: false, error: "Token de autenticação não encontrado" };
     }
 

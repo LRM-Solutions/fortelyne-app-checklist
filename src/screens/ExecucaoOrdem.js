@@ -20,6 +20,7 @@ import {
 } from "../api/ordemApi";
 import { MaterialIcons } from "@expo/vector-icons";
 import AssinaturaComponent from "../components/AssinaturaComponent";
+import Toast from "react-native-toast-message";
 
 const ExecucaoOrdem = ({ route, navigation }) => {
   const { ordem } = route.params || {};
@@ -88,7 +89,12 @@ const ExecucaoOrdem = ({ route, navigation }) => {
       }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
-      Alert.alert("Erro", "Erro ao carregar dados da ordem");
+      Toast.show({
+        type: "error",
+        text1: "Erro",
+        text2: "Erro ao carregar dados da ordem",
+        visibilityTime: 4000,
+      });
     } finally {
       setLoading(false);
     }
@@ -184,10 +190,12 @@ const ExecucaoOrdem = ({ route, navigation }) => {
     });
 
     if (perguntasNaoRespondidas.length > 0) {
-      Alert.alert(
-        "Formulário Incompleto",
-        "Por favor, responda todas as perguntas antes de salvar."
-      );
+      Toast.show({
+        type: "error",
+        text1: "Formulário Incompleto",
+        text2: "Por favor, responda todas as perguntas antes de salvar.",
+        visibilityTime: 4000,
+      });
       return;
     }
 

@@ -1,6 +1,6 @@
 import api from "./apiConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Alert } from "react-native";
+import Toast from "react-native-toast-message";
 // Função de login
 export const login = async (userEmail, userPassword) => {
   try {
@@ -20,7 +20,12 @@ export const login = async (userEmail, userPassword) => {
 
     let errorMessage = error.response.data.error;
 
-    Alert.alert("Erro no Login", errorMessage);
+    Toast.show({
+      type: "error",
+      text1: "Erro no Login",
+      text2: errorMessage,
+      visibilityTime: 4000,
+    });
   }
 };
 

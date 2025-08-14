@@ -10,6 +10,7 @@ import OrdensNavigator from "./src/screens/OrdensNavigator";
 import FormularioOrdem from "./src/screens/FormularioOrdem";
 import FormularioSucesso from "./src/screens/FormularioSucesso";
 import ExecucaoOrdem from "./src/screens/ExecucaoOrdem";
+import Toast from "react-native-toast-message";
 
 const Stack = createStackNavigator();
 
@@ -70,6 +71,7 @@ export default function App() {
       <AuthProvider>
         <AppContent />
         <StatusBar style="auto" />
+        <Toast />
       </AuthProvider>
     </SafeAreaProvider>
   );

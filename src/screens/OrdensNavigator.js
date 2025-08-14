@@ -5,6 +5,7 @@ import OrdensAFazer from "./OrdensAFazer";
 import PerfilScreen from "./PerfilScreen";
 import { View, StyleSheet, Platform } from "react-native";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { theme } from "../utils/theme";
 import {
   useSafeAreaInsets,
   SafeAreaView,
@@ -15,7 +16,7 @@ const Tab = createBottomTabNavigator();
 // Ícones usando @expo/vector-icons
 const TabIcon = ({ name, focused }) => {
   const getIcon = () => {
-    const color = focused ? "#2196F3" : "#666";
+    const color = focused ? theme.colors.primary : "#666";
     const size = 24;
 
     switch (name) {
@@ -49,7 +50,7 @@ const OrdensNavigator = () => {
           tabBarIcon: ({ focused }) => (
             <TabIcon name={route.name} focused={focused} />
           ),
-          tabBarActiveTintColor: "#2196F3",
+          tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: "#666",
           tabBarStyle: [
             styles.tabBar,

@@ -6,7 +6,6 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   SafeAreaView,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -15,6 +14,7 @@ import {
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
 import { getFormularioOrdem, enviarFormularioOrdem } from "../api/ordemApi";
 import AssinaturaComponent from "../components/AssinaturaComponent";
+import Toast from "react-native-toast-message";
 
 const FormularioOrdem = ({ route, navigation }) => {
   const { ordem } = route.params || {};
@@ -113,10 +113,12 @@ const FormularioOrdem = ({ route, navigation }) => {
     });
 
     if (perguntasNaoRespondidas.length > 0) {
-      Alert.alert(
-        "Formulário Incompleto",
-        "Por favor, responda todas as perguntas antes de enviar."
-      );
+      Toast.show({
+        type: "error",
+        text1: "Formulário Incompleto",
+        text2: "Por favor, responda todas as perguntas antes de enviar.",
+        visibilityTime: 4000,
+      });
       return;
     }
 
@@ -149,14 +151,21 @@ const FormularioOrdem = ({ route, navigation }) => {
                   formulario,
                 });
               } else {
-                Alert.alert(
-                  "Erro",
-                  resultado.error || "Erro ao enviar formulário"
-                );
+                Toast.show({
+                  type: "error",
+                  text1: "Erro",
+                  text2: resultado.error || "Erro ao enviar formulário",
+                  visibilityTime: 4000,
+                });
               }
             } catch (error) {
               console.error("Erro ao enviar formulário:", error);
-              Alert.alert("Erro", "Erro inesperado ao enviar formulário");
+              Toast.show({
+                type: "error",
+                text1: "Erro",
+                text2: "Erro inesperado ao enviar formulário",
+                visibilityTime: 4000,
+              });
             } finally {
               setEnviando(false);
             }

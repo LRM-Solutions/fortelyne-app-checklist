@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
-  Alert,
   Modal,
 } from "react-native";
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
@@ -18,6 +17,7 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { MaterialIcons } from "@expo/vector-icons";
+import Toast from "react-native-toast-message";
 
 const OrdensAFazer = ({ navigation }) => {
   const [ordensAFazer, setOrdensAFazer] = useState([]);
@@ -65,10 +65,13 @@ const OrdensAFazer = ({ navigation }) => {
       // Verificar permissão
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert(
-          "Permissão Negada",
-          "É necessário permitir o acesso à localização para verificar se você está no local da ordem."
-        );
+        Toast.show({
+          type: "error",
+          text1: "Permissão Negada",
+          text2:
+            "É necessário permitir o acesso à localização para verificar se você está no local da ordem.",
+          visibilityTime: 5000,
+        });
         return null;
       }
 
@@ -83,10 +86,13 @@ const OrdensAFazer = ({ navigation }) => {
       };
     } catch (error) {
       console.error("Erro ao obter localização:", error);
-      Alert.alert(
-        "Erro de Localização",
-        "Não foi possível obter sua localização atual. Verifique se o GPS está ativado."
-      );
+      Toast.show({
+        type: "error",
+        text1: "Erro de Localização",
+        text2:
+          "Não foi possível obter sua localização atual. Verifique se o GPS está ativado.",
+        visibilityTime: 5000,
+      });
       return null;
     }
   };
@@ -127,17 +133,24 @@ const OrdensAFazer = ({ navigation }) => {
         // Funcionário não está no range
         setModalVisible(false);
         setVerificandoLocalizacao(false);
-        Alert.alert(
-          "Localização Incorreta",
-          "Você não está na localização da ordem de serviço. Aproxime-se do local indicado para continuar.",
-          [{ text: "OK" }]
-        );
+        Toast.show({
+          type: "error",
+          text1: "Localização Incorreta",
+          text2:
+            "Você não está na localização da ordem de serviço. Aproxime-se do local indicado para continuar.",
+          visibilityTime: 5000,
+        });
       }
     } catch (error) {
       console.error("Erro na verificação de localização:", error);
       setModalVisible(false);
       setVerificandoLocalizacao(false);
-      Alert.alert("Erro", "Erro ao verificar localização. Tente novamente.");
+      Toast.show({
+        type: "error",
+        text1: "Erro",
+        text2: "Erro ao verificar localização. Tente novamente.",
+        visibilityTime: 4000,
+      });
     }
   };
 
