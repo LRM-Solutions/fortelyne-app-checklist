@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Alert } from "react-native";
 import {
   View,
   Text,
@@ -97,6 +98,8 @@ const FormularioOrdem = ({ route, navigation }) => {
   };
 
   const handleSubmit = async () => {
+    console.log("aqui");
+
     // Validar se todas as perguntas foram respondidas
     const perguntasNaoRespondidas = formulario.perguntas.filter((pergunta) => {
       const resposta = respostas[pergunta.formulario_pergunta_id];
@@ -121,6 +124,7 @@ const FormularioOrdem = ({ route, navigation }) => {
       });
       return;
     }
+    console.log("aqui 2");
 
     // Confirmação antes do envio
     Alert.alert(
