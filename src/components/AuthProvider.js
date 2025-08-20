@@ -20,20 +20,21 @@ export const AuthProvider = ({ children }) => {
 
   // Verificar se o usuário está logado ao inicializar
   useEffect(() => {
-    checkUserAuthentication();
-  }, []);
+    const initAuth = async () => {
+      try {
+        setIsLoading(true);
+        const isLoggedIn = await checkAuthToken();
+        setIsAuthenticated(isLoggedIn || false);
+      } catch (error) {
+        console.error("Erro ao verificar autenticação:", error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const checkUserAuthentication = async () => {
-    try {
-      const isLoggedIn = await checkAuthToken();
-      setIsAuthenticated(isLoggedIn);
-    } catch (error) {
-      console.error("Erro ao verificar autenticação:", error);
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    initAuth();
+  }, []);
 
   const login = () => {
     setIsAuthenticated(true);
@@ -48,7 +49,6 @@ export const AuthProvider = ({ children }) => {
     isLoading,
     login,
     logout,
-    checkUserAuthentication,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

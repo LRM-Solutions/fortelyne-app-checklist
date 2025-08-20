@@ -4,6 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider, useAuth } from "./src/components/AuthProvider";
+import ErrorBoundary from "./src/components/ErrorBoundary";
 import LoginScreen from "./src/screens/LoginScreen";
 import LoadingScreen from "./src/components/LoadingScreen";
 import OrdensNavigator from "./src/screens/OrdensNavigator";
@@ -67,12 +68,14 @@ function AppContent() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <AppContent />
-        <StatusBar style="auto" />
-        <Toast />
-      </AuthProvider>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <AppContent />
+          <StatusBar style="auto" />
+          <Toast />
+        </AuthProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
