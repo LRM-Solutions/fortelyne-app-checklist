@@ -196,7 +196,12 @@ export const getFormularioOrdem = async (ordemId) => {
 };
 
 // Função para enviar formulário preenchido
-export const enviarFormularioOrdem = async (ordemId, respostas, formulario) => {
+export const enviarFormularioOrdem = async (
+  ordemId,
+  respostas,
+  formulario,
+  anexosPorPergunta = {}
+) => {
   try {
     const token = await getAuthToken();
 
@@ -215,6 +220,7 @@ export const enviarFormularioOrdem = async (ordemId, respostas, formulario) => {
 
     Object.keys(respostas).forEach((perguntaId) => {
       const resposta = respostas[perguntaId];
+      const anexos = anexosPorPergunta[perguntaId] || [];
       const pergunta = formulario.perguntas.find(
         (p) => p.formulario_pergunta_id.toString() === perguntaId.toString()
       );
@@ -229,6 +235,7 @@ export const enviarFormularioOrdem = async (ordemId, respostas, formulario) => {
           resposta_escolha_id: null,
           resposta_texto: resposta,
           assinatura_base64: null,
+          anexos: anexos,
         });
       } else if (pergunta.pergunta_type_id === "MULTIPLA") {
         // Para perguntas de múltipla escolha
@@ -239,6 +246,7 @@ export const enviarFormularioOrdem = async (ordemId, respostas, formulario) => {
             resposta_escolha_id: escolhaId,
             resposta_texto: null,
             assinatura_base64: null,
+            anexos: anexos,
           });
         });
       } else if (pergunta.pergunta_type_id === "UNICA") {
@@ -249,6 +257,7 @@ export const enviarFormularioOrdem = async (ordemId, respostas, formulario) => {
           resposta_escolha_id: resposta,
           resposta_texto: null,
           assinatura_base64: null,
+          anexos: anexos,
         });
       } else if (pergunta.pergunta_type_id === "ASSINATURA") {
         // Para perguntas de assinatura
@@ -258,6 +267,7 @@ export const enviarFormularioOrdem = async (ordemId, respostas, formulario) => {
           resposta_escolha_id: null,
           resposta_texto: null,
           assinatura_base64: resposta,
+          anexos: anexos,
         });
       }
     });
@@ -344,7 +354,12 @@ export const getRespostasFinaisOrdem = async (ordemId) => {
 };
 
 // Função para editar formulário já enviado
-export const editarFormularioOrdem = async (ordemId, respostas, formulario) => {
+export const editarFormularioOrdem = async (
+  ordemId,
+  respostas,
+  formulario,
+  anexosPorPergunta = {}
+) => {
   try {
     const token = await getAuthToken();
 
@@ -363,6 +378,7 @@ export const editarFormularioOrdem = async (ordemId, respostas, formulario) => {
 
     Object.keys(respostas).forEach((perguntaId) => {
       const resposta = respostas[perguntaId];
+      const anexos = anexosPorPergunta[perguntaId] || [];
       const pergunta = formulario.perguntas.find(
         (p) => p.formulario_pergunta_id.toString() === perguntaId.toString()
       );
@@ -377,6 +393,7 @@ export const editarFormularioOrdem = async (ordemId, respostas, formulario) => {
           resposta_escolha_id: null,
           resposta_texto: resposta,
           assinatura_base64: null,
+          anexos: anexos,
         });
       } else if (pergunta.pergunta_type_id === "MULTIPLA") {
         // Para perguntas de múltipla escolha
@@ -387,6 +404,7 @@ export const editarFormularioOrdem = async (ordemId, respostas, formulario) => {
             resposta_escolha_id: escolhaId,
             resposta_texto: null,
             assinatura_base64: null,
+            anexos: anexos,
           });
         });
       } else if (pergunta.pergunta_type_id === "UNICA") {
@@ -398,6 +416,7 @@ export const editarFormularioOrdem = async (ordemId, respostas, formulario) => {
             resposta_escolha_id: resposta,
             resposta_texto: null,
             assinatura_base64: null,
+            anexos: anexos,
           });
         }
       } else if (pergunta.pergunta_type_id === "ASSINATURA") {
@@ -409,6 +428,7 @@ export const editarFormularioOrdem = async (ordemId, respostas, formulario) => {
             resposta_escolha_id: null,
             resposta_texto: null,
             assinatura_base64: resposta,
+            anexos: anexos,
           });
         }
       }

@@ -20,6 +20,7 @@ import {
 } from "../api/ordemApi";
 import { MaterialIcons } from "@expo/vector-icons";
 import AssinaturaComponent from "../components/AssinaturaComponent";
+import AnexosComponent from "../components/AnexosComponent";
 import Toast from "react-native-toast-message";
 
 const ExecucaoOrdem = ({ route, navigation }) => {
@@ -28,6 +29,7 @@ const ExecucaoOrdem = ({ route, navigation }) => {
   const [formulario, setFormulario] = useState(null);
   const [respostasFinais, setRespostasFinais] = useState([]);
   const [respostasEditaveis, setRespostasEditaveis] = useState({});
+  const [anexosPorPergunta, setAnexosPorPergunta] = useState({});
   const [loading, setLoading] = useState(true);
   const [modoEdicao, setModoEdicao] = useState(false);
   const [salvando, setSalvando] = useState(false);
@@ -62,12 +64,41 @@ const ExecucaoOrdem = ({ route, navigation }) => {
 
         // Mapear respostas finais para o formato editável
         const respostasMap = {};
+        const anexosMap = {};
 
         formularioResponse.data.perguntas.forEach((pergunta) => {
           const perguntaId = pergunta.formulario_pergunta_id;
           const respostasDaPergunta = respostasResponse.respostas.filter(
             (r) => r.formulario_pergunta_id === perguntaId
           );
+
+          // Inicializar anexos para cada pergunta
+          anexosMap[perguntaId] = [];
+
+          // Coletar anexos das respostas usando o novo formato da API
+          respostasDaPergunta.forEach((resposta) => {
+            // Formato antigo: resposta.anexos (base64)
+            if (resposta.anexos && resposta.anexos.length > 0) {
+              anexosMap[perguntaId] = [
+                ...anexosMap[perguntaId],
+                ...resposta.anexos,
+              ];
+            }
+
+            // Formato novo: resposta.respostaFinalImagens (URLs)
+            if (
+              resposta.respostaFinalImagens &&
+              resposta.respostaFinalImagens.length > 0
+            ) {
+              const imagensUrls = resposta.respostaFinalImagens.map(
+                (img) => img.imagem_url
+              );
+              anexosMap[perguntaId] = [
+                ...anexosMap[perguntaId],
+                ...imagensUrls,
+              ];
+            }
+          });
 
           if (pergunta.pergunta_type_id === "TEXTO") {
             respostasMap[perguntaId] =
@@ -86,6 +117,7 @@ const ExecucaoOrdem = ({ route, navigation }) => {
         });
 
         setRespostasEditaveis(respostasMap);
+        setAnexosPorPergunta(anexosMap);
       }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -137,6 +169,15 @@ const ExecucaoOrdem = ({ route, navigation }) => {
   const handleAssinatura = (perguntaId, assinaturaBase64) => {
     // Assinaturas NUNCA podem ser editadas - função desabilitada
     return;
+  };
+
+  const handleAnexosChange = (perguntaId, novosAnexos) => {
+    if (!modoEdicao) return;
+
+    setAnexosPorPergunta((prev) => ({
+      ...prev,
+      [perguntaId]: novosAnexos,
+    }));
   };
 
   const handleToggleEdicao = () => {
@@ -212,7 +253,8 @@ const ExecucaoOrdem = ({ route, navigation }) => {
               const resultado = await editarFormularioOrdem(
                 ordem.ordem_id,
                 respostasEditaveis,
-                formulario
+                formulario,
+                anexosPorPergunta
               );
 
               if (resultado.success) {
@@ -246,6 +288,7 @@ const ExecucaoOrdem = ({ route, navigation }) => {
 
   const renderPergunta = (pergunta) => {
     const resposta = respostasEditaveis[pergunta.formulario_pergunta_id];
+    const anexos = anexosPorPergunta[pergunta.formulario_pergunta_id] || [];
     const isDisabled = !modoEdicao;
 
     if (pergunta.pergunta_type_id === "MULTIPLA") {
@@ -293,6 +336,13 @@ const ExecucaoOrdem = ({ route, navigation }) => {
               </Text>
             </TouchableOpacity>
           ))}
+          <AnexosComponent
+            anexos={anexos}
+            onAnexosChange={(novosAnexos) =>
+              handleAnexosChange(pergunta.formulario_pergunta_id, novosAnexos)
+            }
+            disabled={isDisabled}
+          />
         </View>
       );
     } else if (pergunta.pergunta_type_id === "UNICA") {
@@ -340,6 +390,13 @@ const ExecucaoOrdem = ({ route, navigation }) => {
               </Text>
             </TouchableOpacity>
           ))}
+          <AnexosComponent
+            anexos={anexos}
+            onAnexosChange={(novosAnexos) =>
+              handleAnexosChange(pergunta.formulario_pergunta_id, novosAnexos)
+            }
+            disabled={isDisabled}
+          />
         </View>
       );
     } else if (pergunta.pergunta_type_id === "TEXTO") {
@@ -363,6 +420,13 @@ const ExecucaoOrdem = ({ route, navigation }) => {
             textAlignVertical="top"
             editable={!isDisabled}
           />
+          <AnexosComponent
+            anexos={anexos}
+            onAnexosChange={(novosAnexos) =>
+              handleAnexosChange(pergunta.formulario_pergunta_id, novosAnexos)
+            }
+            disabled={isDisabled}
+          />
         </View>
       );
     } else if (pergunta.pergunta_type_id === "ASSINATURA") {
@@ -380,6 +444,14 @@ const ExecucaoOrdem = ({ route, navigation }) => {
             }
             value={resposta}
             disabled={true} // SEMPRE desabilitado para assinaturas
+          />
+          {/* Anexos são permitidos mesmo em assinaturas */}
+          <AnexosComponent
+            anexos={anexos}
+            onAnexosChange={(novosAnexos) =>
+              handleAnexosChange(pergunta.formulario_pergunta_id, novosAnexos)
+            }
+            disabled={isDisabled}
           />
         </View>
       );

@@ -15,6 +15,7 @@ import {
 import { theme, createTextStyle, createButtonStyle } from "../utils/theme";
 import { getFormularioOrdem, enviarFormularioOrdem } from "../api/ordemApi";
 import AssinaturaComponent from "../components/AssinaturaComponent";
+import AnexosComponent from "../components/AnexosComponent";
 import Toast from "react-native-toast-message";
 
 const FormularioOrdem = ({ route, navigation }) => {
@@ -24,6 +25,7 @@ const FormularioOrdem = ({ route, navigation }) => {
   const [loading, setLoading] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [respostas, setRespostas] = useState({});
+  const [anexosPorPergunta, setAnexosPorPergunta] = useState({});
 
   useEffect(() => {
     if (ordem?.ordem_id) {
@@ -97,6 +99,13 @@ const FormularioOrdem = ({ route, navigation }) => {
     }));
   };
 
+  const handleAnexosChange = (perguntaId, novosAnexos) => {
+    setAnexosPorPergunta((prev) => ({
+      ...prev,
+      [perguntaId]: novosAnexos,
+    }));
+  };
+
   const handleSubmit = async () => {
     console.log("aqui");
 
@@ -145,7 +154,8 @@ const FormularioOrdem = ({ route, navigation }) => {
               const resultado = await enviarFormularioOrdem(
                 ordem.ordem_id,
                 respostas,
-                formulario
+                formulario,
+                anexosPorPergunta
               );
 
               if (resultado.success) {
@@ -181,6 +191,7 @@ const FormularioOrdem = ({ route, navigation }) => {
 
   const renderPergunta = (pergunta) => {
     const resposta = respostas[pergunta.formulario_pergunta_id];
+    const anexos = anexosPorPergunta[pergunta.formulario_pergunta_id] || [];
 
     if (pergunta.pergunta_type_id === "MULTIPLA") {
       return (
@@ -216,6 +227,13 @@ const FormularioOrdem = ({ route, navigation }) => {
               <Text style={styles.opcaoTexto}>{escolha.resposta_label}</Text>
             </TouchableOpacity>
           ))}
+          <AnexosComponent
+            anexos={anexos}
+            onAnexosChange={(novosAnexos) =>
+              handleAnexosChange(pergunta.formulario_pergunta_id, novosAnexos)
+            }
+            disabled={enviando}
+          />
         </View>
       );
     } else if (pergunta.pergunta_type_id === "UNICA") {
@@ -252,6 +270,13 @@ const FormularioOrdem = ({ route, navigation }) => {
               <Text style={styles.opcaoTexto}>{escolha.resposta_label}</Text>
             </TouchableOpacity>
           ))}
+          <AnexosComponent
+            anexos={anexos}
+            onAnexosChange={(novosAnexos) =>
+              handleAnexosChange(pergunta.formulario_pergunta_id, novosAnexos)
+            }
+            disabled={enviando}
+          />
         </View>
       );
     } else if (pergunta.pergunta_type_id === "TEXTO") {
@@ -274,6 +299,13 @@ const FormularioOrdem = ({ route, navigation }) => {
             numberOfLines={4}
             textAlignVertical="top"
           />
+          <AnexosComponent
+            anexos={anexos}
+            onAnexosChange={(novosAnexos) =>
+              handleAnexosChange(pergunta.formulario_pergunta_id, novosAnexos)
+            }
+            disabled={enviando}
+          />
         </View>
       );
     } else if (pergunta.pergunta_type_id === "ASSINATURA") {
@@ -290,6 +322,13 @@ const FormularioOrdem = ({ route, navigation }) => {
               handleAssinatura(pergunta.formulario_pergunta_id, assinatura)
             }
             value={resposta}
+            disabled={enviando}
+          />
+          <AnexosComponent
+            anexos={anexos}
+            onAnexosChange={(novosAnexos) =>
+              handleAnexosChange(pergunta.formulario_pergunta_id, novosAnexos)
+            }
             disabled={enviando}
           />
         </View>
