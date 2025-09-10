@@ -195,6 +195,25 @@ export const getFormularioOrdem = async (ordemId) => {
   }
 };
 
+// Função para processar anexos no formato misto (URLs + base64)
+const processarAnexosFormatoMisto = (anexos) => {
+  return anexos.map((anexo) => {
+    // Se é uma URL do Vercel Blob, mantém como está
+    if (
+      typeof anexo === "string" &&
+      (anexo.startsWith("http") || anexo.startsWith("https"))
+    ) {
+      return anexo;
+    }
+    // Se é base64, mantém como está
+    if (typeof anexo === "string" && anexo.startsWith("data:")) {
+      return anexo;
+    }
+    // Fallback: retorna como está
+    return anexo;
+  });
+};
+
 // Função para enviar formulário preenchido
 export const enviarFormularioOrdem = async (
   ordemId,
@@ -220,7 +239,17 @@ export const enviarFormularioOrdem = async (
 
     Object.keys(respostas).forEach((perguntaId) => {
       const resposta = respostas[perguntaId];
-      const anexos = anexosPorPergunta[perguntaId] || [];
+      const anexosBrutos = anexosPorPergunta[perguntaId] || [];
+      const anexos = processarAnexosFormatoMisto(anexosBrutos);
+
+      // Debug específico dos anexos
+      if (anexos.length > 0) {
+        console.log(
+          `📎 Anexos da pergunta ${perguntaId}:`,
+          JSON.stringify(anexos, null, 2)
+        );
+      }
+
       const pergunta = formulario.perguntas.find(
         (p) => p.formulario_pergunta_id.toString() === perguntaId.toString()
       );
@@ -272,10 +301,17 @@ export const enviarFormularioOrdem = async (
       }
     });
 
-    console.log("Payload formatado:", {
-      ordem_id: ordemId,
-      respostas: respostasFormatadas,
-    });
+    console.log(
+      "Payload formatado:",
+      JSON.stringify(
+        {
+          ordem_id: ordemId,
+          respostas: respostasFormatadas,
+        },
+        null,
+        2
+      )
+    );
 
     const response = await api.post(
       "/envio-formulario",
@@ -378,7 +414,17 @@ export const editarFormularioOrdem = async (
 
     Object.keys(respostas).forEach((perguntaId) => {
       const resposta = respostas[perguntaId];
-      const anexos = anexosPorPergunta[perguntaId] || [];
+      const anexosBrutos = anexosPorPergunta[perguntaId] || [];
+      const anexos = processarAnexosFormatoMisto(anexosBrutos);
+
+      // Debug específico dos anexos para edição
+      if (anexos.length > 0) {
+        console.log(
+          `📝 Anexos da pergunta ${perguntaId} (edição):`,
+          JSON.stringify(anexos, null, 2)
+        );
+      }
+
       const pergunta = formulario.perguntas.find(
         (p) => p.formulario_pergunta_id.toString() === perguntaId.toString()
       );
@@ -419,25 +465,21 @@ export const editarFormularioOrdem = async (
             anexos: anexos,
           });
         }
-      } else if (pergunta.pergunta_type_id === "ASSINATURA") {
-        // Para perguntas de assinatura
-        if (resposta) {
-          respostasFormatadas.push({
-            formulario_pergunta_id: parseInt(perguntaId),
-            tipo_pergunta: "ASSINATURA",
-            resposta_escolha_id: null,
-            resposta_texto: null,
-            assinatura_base64: resposta,
-            anexos: anexos,
-          });
-        }
       }
+      // ASSINATURA não é editável pela lógica de negócios - removido do payload
     });
 
-    console.log("Payload para edição:", {
-      ordem_id: ordemId,
-      respostas: respostasFormatadas,
-    });
+    console.log(
+      "Payload para edição:",
+      JSON.stringify(
+        {
+          ordem_id: ordemId,
+          respostas: respostasFormatadas,
+        },
+        null,
+        2
+      )
+    );
 
     const response = await api.put(
       "/editar-envio-formulario",
