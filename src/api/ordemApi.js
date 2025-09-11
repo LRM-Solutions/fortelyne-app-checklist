@@ -412,6 +412,12 @@ export const editarFormularioOrdem = async (
     // Transformar respostas para o formato esperado pela API
     const respostasFormatadas = [];
 
+    // Debug: Verificar anexos recebidos
+    console.log(
+      "🔍 anexosPorPergunta recebido na API:",
+      JSON.stringify(anexosPorPergunta, null, 2)
+    );
+
     Object.keys(respostas).forEach((perguntaId) => {
       const resposta = respostas[perguntaId];
       const anexosBrutos = anexosPorPergunta[perguntaId] || [];

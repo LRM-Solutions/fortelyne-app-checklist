@@ -118,6 +118,11 @@ const ExecucaoOrdem = ({ route, navigation }) => {
 
         setRespostasEditaveis(respostasMap);
         setAnexosPorPergunta(anexosMap);
+
+        console.log(
+          `🔄 Dados recarregados - Anexos por pergunta:`,
+          JSON.stringify(anexosMap, null, 2)
+        );
       }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -174,10 +179,22 @@ const ExecucaoOrdem = ({ route, navigation }) => {
   const handleAnexosChange = (perguntaId, novosAnexos) => {
     if (!modoEdicao) return;
 
-    setAnexosPorPergunta((prev) => ({
-      ...prev,
-      [perguntaId]: novosAnexos,
-    }));
+    console.log(
+      `🗑️ Anexos alterados para pergunta ${perguntaId}:`,
+      JSON.stringify(novosAnexos, null, 2)
+    );
+
+    setAnexosPorPergunta((prev) => {
+      const novoState = {
+        ...prev,
+        [perguntaId]: novosAnexos,
+      };
+      console.log(
+        `📁 Estado completo dos anexos após alteração:`,
+        JSON.stringify(novoState, null, 2)
+      );
+      return novoState;
+    });
   };
 
   const handleToggleEdicao = () => {
@@ -250,6 +267,12 @@ const ExecucaoOrdem = ({ route, navigation }) => {
           onPress: async () => {
             setSalvando(true);
             try {
+              // Debug: Verificar estado antes de enviar para API
+              console.log(
+                "🚀 Estado anexosPorPergunta antes de enviar para API:",
+                JSON.stringify(anexosPorPergunta, null, 2)
+              );
+
               const resultado = await editarFormularioOrdem(
                 ordem.ordem_id,
                 respostasEditaveis,

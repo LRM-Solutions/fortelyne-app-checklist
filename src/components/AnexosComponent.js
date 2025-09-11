@@ -108,13 +108,26 @@ const AnexosComponent = ({ anexos = [], onAnexosChange, disabled = false }) => {
   const removerAnexo = (index) => {
     if (disabled) return;
 
+    console.log(
+      `🗑️ Tentando remover anexo no índice ${index} de:`,
+      JSON.stringify(anexos, null, 2)
+    );
+
     Alert.alert("Remover Anexo", "Deseja realmente remover este anexo?", [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Remover",
         style: "destructive",
         onPress: () => {
+          const anexoRemovido = anexos[index];
           const novosAnexos = anexos.filter((_, i) => i !== index);
+
+          console.log(`❌ Anexo removido:`, anexoRemovido);
+          console.log(
+            `📝 Novos anexos após remoção:`,
+            JSON.stringify(novosAnexos, null, 2)
+          );
+
           onAnexosChange(novosAnexos);
         },
       },
